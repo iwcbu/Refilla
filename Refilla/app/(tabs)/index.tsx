@@ -30,10 +30,6 @@ export default function MapTab() {
     ]);
 
 
-    useEffect(() => {
-
-    }, [])
-
     const activeStations = useMemo(
         () => stations.filter((s) => s.stationStatus === "ACTIVE"),
         [stations]

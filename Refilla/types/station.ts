@@ -9,6 +9,7 @@ export type Station = {
     lat: number; // latitude
     lng: number; // longitude
 
+    buildingAbre: string;    // Abreviation of the building name
     buildingName: string;    // Name that bottle refiller is in
     buildingDetails: string; // Where the station is located in the building
 

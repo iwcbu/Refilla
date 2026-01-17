@@ -7,20 +7,46 @@ function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
   color: string;
 }) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+  return <FontAwesome size={28} style={{ }} {...props} />;
 }
 
 export default function TabsLayout() {
   return (
-    <Tabs>
-      <Tabs.Screen name="index" options={{ title: "Map" }} />
-      <Tabs.Screen name="add" options={{ title: "List" }} />
+    <Tabs
+      screenOptions={{
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: "600",
+        },
+        tabBarActiveTintColor: "#2a80ea",
+        tabBarInactiveTintColor: "#8899a1",
+
+        tabBarStyle: { height: 72, paddingVertical: 10 },
+        tabBarItemStyle: { marginHorizontal: 12, borderRadius: 16 },
+      }}
+    >
       
+      <Tabs.Screen 
+        name="index" 
+        options={{ 
+          title: "Stations", 
+          tabBarIcon: ({ color }) => <TabBarIcon name="map" color={color} /> 
+        }} 
+      />
+
+      <Tabs.Screen 
+        name="add" 
+        options={{ 
+          title: "Add", 
+          tabBarIcon: ({ color }) => <TabBarIcon name="plus" color={color} /> 
+        }} 
+      />
+
       <Tabs.Screen 
         name="settings" 
         options={{ 
           title: "Settings", 
-          tabBarIcon: ({ color }) => <TabBarIcon name="book" color={color} /> 
+          tabBarIcon: ({ color }) => <TabBarIcon name="gear" color={color} /> 
         }} 
       />
 

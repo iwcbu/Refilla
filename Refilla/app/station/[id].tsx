@@ -1,5 +1,6 @@
 import { StyleSheet, View, Text, Image } from "react-native";
 import { Station } from "../../types/station";
+import MapView from 'react-native-maps';
 
 const station: Station = {
   id: "test",
@@ -86,11 +87,7 @@ export default function StationDetail() {
 
         {/* Map image */}
         <View style={styles.mapWrap}>
-          <Image
-            source={{ uri: "https://wordpress.wbur.org/wp-content/uploads/2019/02/Allston-1000x699.png" }}
-            style={styles.map}
-            resizeMode="cover"
-          />
+          <MapView style={styles.map}/>
         </View>
       </View>
     </View>

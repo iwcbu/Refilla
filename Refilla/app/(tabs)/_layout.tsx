@@ -29,16 +29,16 @@ export default function TabsLayout() {
       <Tabs.Screen 
         name="index" 
         options={{ 
-          title: "Stations", 
-          tabBarIcon: ({ color }) => <TabBarIcon name="map" color={color} /> 
+          title: "Map", 
+          tabBarIcon: ({ color }) => <TabBarIcon name="map-marker" color={color} /> 
         }} 
       />
 
       <Tabs.Screen 
-        name="add" 
+        name="list" 
         options={{ 
-          title: "Add", 
-          tabBarIcon: ({ color }) => <TabBarIcon name="plus" color={color} /> 
+          title: "List", 
+          tabBarIcon: ({ color }) => <TabBarIcon name="list-ul" color={color} /> 
         }} 
       />
 

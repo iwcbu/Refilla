@@ -1,7 +1,7 @@
 // Refilla/types/station.ts
 
 export type FilterStatus = "GREEN" | "YELLOW" | "RED" | "NA"
-export type StationStatus = "PENDING" | "ACTIVE" | "REMOVED"
+export type StationStatus = "PENDING" | "ACTIVE" | "REMOVED" | "NA"
 
 export type Station = {
 

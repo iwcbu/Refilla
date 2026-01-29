@@ -1,7 +1,16 @@
 import { useMemo, useState } from "react";
 import { router } from "expo-router";
+import { FontAwesome } from "@expo/vector-icons";
 import { StyleSheet, View, Text, FlatList, Pressable } from "react-native";
 import type { Station } from "../../types/station";
+
+
+function TabBarIcon(props: {
+  name: React.ComponentProps<typeof FontAwesome>['name'];
+  color: string;
+}) {
+  return <FontAwesome size={33} style={{ }} {...props} />;
+}
 
 function filterColor(status: string) {
   if (status === "GREEN") return "#16a34a";
@@ -60,7 +69,7 @@ export default function MapTab() {
       buildingDetails: "Basement hallway near bathrooms",
       filterStatus: "RED",
       stationStatus: "ACTIVE",
-      bottlesSaved: 30000,
+      bottlesSaved: 50000,
       lastUpdated: new Date().toISOString(),
     },
     {
@@ -72,7 +81,7 @@ export default function MapTab() {
       buildingDetails: "Basement hallway near bathrooms",
       filterStatus: "GREEN",
       stationStatus: "ACTIVE",
-      bottlesSaved: 30000,
+      bottlesSaved: 10000,
       lastUpdated: new Date().toISOString(),
     },
   ]);
@@ -84,10 +93,28 @@ export default function MapTab() {
 
   return (
     <View style={styles.screen}>
+
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Refilla</Text>
-        <Text style={styles.subtitle}>Stations nearby (demo)</Text>
+
+        <View style={styles.textBox}>
+          <Text style={styles.title}>Refilla</Text>
+          <Text style={styles.subtitle}>Stations nearby (demo)</Text>
+        </View>
+
+        <Pressable style={({ pressed }) => [
+                styles.ticket,
+                pressed && styles.ticketPressed,
+              ]}
+          onPress={() => {
+            router.push({
+              pathname: `/ticket/new`,
+            })
+          }}>
+            <View style={{ width: 30, height: 30, display: 'flex', justifyContent:'center', alignItems:'center' }}>
+              <TabBarIcon name="plus" color="white" />
+            </View>
+        </Pressable>
       </View>
 
       <FlatList
@@ -154,6 +181,10 @@ const styles = StyleSheet.create({
   },
 
   header: {
+    flexDirection: "row",
+  },
+
+  textBox: {
     marginTop: 4,
     marginBottom: 12,
   },
@@ -168,10 +199,29 @@ const styles = StyleSheet.create({
     color: "#64748b",
   },
 
+  ticket: {
+    marginLeft: "auto",
+    marginRight: 20,
+    alignSelf: "center",
+
+    shadowOpacity: .2,
+    shadowOffset: {width: 1, height: 1 },
+    
+    borderRadius: 140,
+    padding: 12,
+    backgroundColor: "#77a0ff"
+
+  },
+
+  ticketPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.98 }],
+  },
+
   grid: {
     paddingTop: 6,
     paddingBottom: 24,
-    alignSelf: "center", // centers the whole grid nicely
+    alignSelf: "center",
   },
   row: {
     gap: 12,

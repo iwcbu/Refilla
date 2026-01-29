@@ -13,6 +13,14 @@ export default function RootLayout() {
           headerBackTitle: "Back",
           }}
       />
+      <Stack.Screen
+        name="ticket/new"
+        options={{
+          headerShown: true,
+          title: "Station",
+          headerBackTitle: "Back",
+        }}
+      />
     </Stack>
   );
 }

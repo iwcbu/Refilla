@@ -1,18 +1,19 @@
 import { StyleSheet, View, Text, Image } from "react-native";
 import { Station } from "../../types/station";
-import MapView from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
+
 
 const station: Station = {
-  id: "test",
-  lat: 1,
-  lng: 1,
-  buildingAbre: "TST",
-  buildingName: "TESTSTATION",
-  buildingDetails: "Test description, describes where to go",
-  filterStatus: "GREEN",
-  stationStatus: "PENDING",
-  bottlesSaved: 300,
-  lastUpdated: "Test",
+    id: "test",
+    lat: 42.3493,
+    lng: -71.1002,
+    buildingAbre: "TST",
+    buildingName: "TESTSTATION",
+    buildingDetails: "Test description, describes where to go",
+    filterStatus: "GREEN",
+    stationStatus: "PENDING",
+    bottlesSaved: 300,
+    lastUpdated: "Test",
 };
 
 function filterColor(status: string) {
@@ -87,7 +88,32 @@ export default function StationDetail() {
 
         {/* Map image */}
         <View style={styles.mapWrap}>
-          <MapView style={styles.map}/>
+            <MapView
+                style={styles.map}
+                initialRegion={{
+                    latitude: 42.3493,
+                    longitude: -71.1002,
+                    latitudeDelta: 0.005,
+                    longitudeDelta: 0.005,
+                }}
+            >
+                <Marker
+                    key={station.id}
+                    coordinate={{
+                        latitude: Number(station.lat),
+                        longitude: Number(station.lng),
+                    }}
+
+                    // onPress={() =>
+                    //     router.push({
+                    //     pathname: `/station/${station.id}`,
+                    //     params: { id: String(station.id) },
+                    //     })
+                    // }
+
+                    />
+            </MapView>
+        
         </View>
       </View>
     </View>

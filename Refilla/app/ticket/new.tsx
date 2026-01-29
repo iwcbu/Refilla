@@ -150,6 +150,8 @@ export default function NewTicket() {
   }
 
   return (
+
+
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Report an issue</Text>
       <Text style={styles.subtitle}>
@@ -311,15 +313,34 @@ export default function NewTicket() {
         <Text style={styles.cancelText}>Cancel</Text>
       </Pressable>
     </ScrollView>
+
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#f6f7fb" },
-  content: { padding: 16, paddingBottom: 28, gap: 12 },
 
-  title: { fontSize: 26, fontWeight: "900", color: "#0f172a" },
-  subtitle: { marginTop: -6, fontSize: 14, color: "#64748b", lineHeight: 20 },
+  screen: { 
+    flex: 1,
+    backgroundColor: "#f6f7fb", 
+    paddingTop: 40 
+  },
+  content: { 
+    padding: 16, 
+    paddingBottom: 28, 
+    gap: 12 
+  },
+
+  title: { 
+    fontSize: 26, 
+    fontWeight: "900", 
+    color: "#0f172a" 
+  },
+  subtitle: { 
+    marginTop: -6, 
+    fontSize: 14, 
+    color: "#64748b", 
+    lineHeight: 20 
+  },
 
   toggleRow: { flexDirection: "row", gap: 10, marginTop: 6 },
   toggleBtn: {

@@ -1,13 +1,13 @@
-import React from 'react';
 import { Station } from '../../types/station';
-import MapView, { Marker, Callout } from 'react-native-maps';
 import { Pressable, StyleSheet, View, Text } from 'react-native';
-import { useState } from 'react';
-import { router } from 'expo-router';
+import { useEffect, useState, useRef } from 'react';
+
+import { useLiveLocation } from '../../hooks/useLiveLocation';
+import ClusterStationMap from '../../components/clusterMapView';
+import { Coords } from '../../types/location';
 
 
 export default function App() {
-
 
   const [stations] = useState<Station[]>([
       {
@@ -60,40 +60,19 @@ export default function App() {
       },
   ]);
 
-  return (
-    <View style={styles.container}>
-      <MapView style={styles.map} 
-        initialRegion={{
-          latitude: 42.3505,
-          longitude: -71.1054,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-      }}>
 
-        {stations.map((station) => (
-              <Marker
-                key={station.id}
-                coordinate={{
-                  latitude: Number(station.lat),
-                  longitude: Number(station.lng),
-                }}
-                onPress={() =>
-                  
-                  router.push({
-                    pathname: `/station/${station.id}`,
-                    params: { id: String(station.id) },
-                  })
-                }
-              >
-                <Callout tooltip>
-                  <View style={{ backgroundColor: 'white', padding: 10, borderRadius: 10, transform: [{ translateY: -40 }] }}>
-                    <Text style={{ fontWeight: '600' }}>{station.buildingAbre} Station #{station.id}</Text>
-                  </View>
-                </Callout>
-              </Marker>
-        ))}
-      </MapView>
+
+  const [userLocation, setUserLocation] = useState<Coords>({ latitude: 42.3487, longitude: -71.1002 })
+
+  
+  return (
+
+    <View style={styles.container}>
+
+      <ClusterStationMap stations={ stations } userLocation={ userLocation } />
+    
     </View>
+
   );
 }
 
@@ -105,4 +84,9 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  paragraph: {
+    fontSize: 18,
+    textAlign: 'center',
+  },
 });
+

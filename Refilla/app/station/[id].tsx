@@ -1,20 +1,9 @@
 import { StyleSheet, View, Text, Image } from "react-native";
-import { Station } from "../../types/station";
 import MapView, { Marker } from 'react-native-maps';
+import { useLocalSearchParams } from "expo-router";
 
+import { Station } from "../../types/station";
 
-const station: Station = {
-    id: "test",
-    lat: 42.3493,
-    lng: -71.1002,
-    buildingAbre: "TST",
-    buildingName: "TESTSTATION",
-    buildingDetails: "Test description, describes where to go",
-    filterStatus: "GREEN",
-    stationStatus: "PENDING",
-    bottlesSaved: 300,
-    lastUpdated: "Test",
-};
 
 function filterColor(status: string) {
   if (status === "GREEN") return "#16a34a";
@@ -35,12 +24,28 @@ function softBg(hex: string) {
 }
 
 export default function StationDetail() {
+
+  const { id } = useLocalSearchParams<{ id: string }>();
+
+  const station: Station = {
+    id: id ?? "unknown",
+    lat: 42.3493,
+    lng: -71.1002,
+    buildingAbre: "TST",
+    buildingName: "TESTSTATION",
+    buildingDetails: "Test description, describes where to go",
+    filterStatus: "GREEN",
+    stationStatus: "PENDING",
+    bottlesSaved: 300,
+    lastUpdated: "Test",
+  };
+
   const fColor = filterColor(station.filterStatus);
   const sColor = statusColor(station.stationStatus);
 
   return (
     <View style={styles.screen}>
-      {/* Header */}
+      
       <View style={styles.header}>
         <Text style={styles.title}>Station Details</Text>
         <Text style={styles.subtitle}>
@@ -48,9 +53,8 @@ export default function StationDetail() {
         </Text>
       </View>
 
-      {/* Card */}
       <View style={styles.card}>
-        {/* Top row */}
+
         <View style={styles.rowBetween}>
           <View style={{ flex: 1 }}>
             <Text style={styles.label}>Station ID</Text>
@@ -63,7 +67,7 @@ export default function StationDetail() {
           </View>
         </View>
 
-        {/* Badges */}
+
         <View style={styles.badgeRow}>
           <View style={[styles.badge, { backgroundColor: softBg(fColor), borderColor: fColor }]}>
             <Text style={styles.badgeKey}>Filter</Text>
@@ -75,8 +79,7 @@ export default function StationDetail() {
             <Text style={[styles.badgeVal, { color: sColor }]}>{station.stationStatus}</Text>
           </View>
         </View>
-
-        {/* Details */}
+        
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Where to go</Text>
           <Text style={styles.details}>
@@ -86,13 +89,13 @@ export default function StationDetail() {
           <Text style={styles.meta}>Last updated: {station.lastUpdated}</Text>
         </View>
 
-        {/* Map image */}
+
         <View style={styles.mapWrap}>
             <MapView
                 style={styles.map}
                 initialRegion={{
-                    latitude: 42.3493,
-                    longitude: -71.1002,
+                    latitude: Number(station.lat),
+                    longitude: Number(station.lng),
                     latitudeDelta: 0.005,
                     longitudeDelta: 0.005,
                 }}
@@ -103,13 +106,6 @@ export default function StationDetail() {
                         latitude: Number(station.lat),
                         longitude: Number(station.lng),
                     }}
-
-                    // onPress={() =>
-                    //     router.push({
-                    //     pathname: `/station/${station.id}`,
-                    //     params: { id: String(station.id) },
-                    //     })
-                    // }
 
                     />
             </MapView>

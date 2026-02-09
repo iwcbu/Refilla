@@ -77,8 +77,10 @@ export default function ClusterStationMap({ stations, userLocation }: CsmProps) 
     return ( 
 
         <MapView
+
             ref={ mapRef }
             style={styles.map}
+            
 
             initialRegion={ region }
             onRegionChangeComplete={setRegion}
@@ -127,10 +129,7 @@ export default function ClusterStationMap({ stations, userLocation }: CsmProps) 
 
                         onPress={() =>
                             
-                            router.push({
-                            pathname: `/station/${station.id}`,
-                            params: { id: String(station.id) },
-                            })
+                            router.push(`/station/${station.id}`)
                         }
                     >
                         <View style={{ backgroundColor: 'white', padding: 10, borderRadius: 10, transform: [{ translateY: -40 }] }}>

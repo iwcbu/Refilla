@@ -1,7 +1,11 @@
+import { StyleSheet, View, Text, FlatList, Pressable } from "react-native";
 import { useMemo, useState } from "react";
 import { router } from "expo-router";
+
+import { useColors } from "../../src/theme/colors";
 import { FontAwesome } from "@expo/vector-icons";
-import { StyleSheet, View, Text, FlatList, Pressable } from "react-native";
+import { milesToFeet, meterstoMiles, haversineMiles } from "../../hooks/distanceFromUser";
+
 import type { Station } from "../../types/station";
 
 
@@ -35,6 +39,9 @@ function timeAgo(iso: string) {
 }
 
 export default function MapTab() {
+
+  const c = useColors();
+
   const [stations] = useState<Station[]>([
     {
       id: "1",
@@ -92,14 +99,13 @@ export default function MapTab() {
   );
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: c.bg }]}>
 
-      {/* Header */}
       <View style={styles.header}>
 
         <View style={styles.textBox}>
-          <Text style={styles.title}>Refilla</Text>
-          <Text style={styles.subtitle}>Stations nearby (demo)</Text>
+          <Text style={[styles.title, { color: c.text }]}>Refilla</Text>
+          <Text style={[styles.subtitle, { color: c.subtext }]}>Stations nearby (demo)</Text>
         </View>
 
         <Pressable style={({ pressed }) => [
@@ -107,9 +113,7 @@ export default function MapTab() {
                 pressed && styles.ticketPressed,
               ]}
           onPress={() => {
-            router.push({
-              pathname: `/ticket/new`,
-            })
+            router.push(`/ticket/new`)
           }}>
             <View style={{ width: 30, height: 30, display: 'flex', justifyContent:'center', alignItems:'center' }}>
               <TabBarIcon name="plus" color="white" />
@@ -125,45 +129,38 @@ export default function MapTab() {
         columnWrapperStyle={styles.row}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => {
-          const c = filterColor(item.filterStatus);
+          const fc = filterColor(item.filterStatus);
 
           return (
             <Pressable
               onPress={() => {
-                router.push({
-                  pathname: `/station/${item.id}`,
-                  params: { id: item.id },
-                });
+                router.push(`/station/${item.id}`);
               }}
               style={({ pressed }) => [
                 styles.card,
+                { backgroundColor: c.card2, borderColor: c.border2 },
                 pressed && styles.cardPressed,
               ]}
             >
               <View style={styles.cardTop}>
-                <Text style={styles.abbrev}>{item.buildingAbre}</Text>
+                <Text style={[styles.abbrev, { color: c.text }]}>{item.buildingAbre}</Text>
 
-                {/* small badge */}
-                <View style={[styles.badge, { borderColor: c }]}>
-                  <Text style={[styles.badgeText, { color: c }]}>
+                <View style={[styles.badge, { borderColor: 'white', backgroundColor: fc }]}>
+                  <Text style={[styles.badgeText, { color: 'white' }]}>
                     {item.filterStatus}
                   </Text>
                 </View>
               </View>
 
-              <Text style={styles.buildingName} numberOfLines={1}>
+              <Text style={[styles.buildingName, { color: c.subtext }]} numberOfLines={1}>
                 {item.buildingName}
+                Distance: {}
               </Text>
 
-              <Text style={styles.meta}>SID: #{item.id}</Text>
-
-              <Text style={styles.meta}>
-                Updated: {timeAgo(item.lastUpdated)}
-              </Text>
-
-              <View style={styles.footer}>
-                <Text style={styles.footerLabel}>Bottles</Text>
-                <Text style={styles.footerValue}>{item.bottlesSaved}</Text>
+              <View style={[styles.footer, { borderColor: c.border }]}>
+                <Text style={[styles.meta, { color: c.subtext }]}>
+                    Updated: {timeAgo(item.lastUpdated)}
+                </Text>
               </View>
             </Pressable>
           );
@@ -289,7 +286,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: "#eef2f7",
+    borderTopColor: "#d9dce0",
     flexDirection: "row",
     alignItems: "baseline",
     justifyContent: "space-between",

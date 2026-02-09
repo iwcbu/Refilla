@@ -6,25 +6,25 @@ import {
     ScrollView,
     StyleSheet,
     Switch
-
-
 } from 'react-native';
-import { router } from 'expo-router';
-import { title } from 'node:process';
+
+import { useColors } from '../../src/theme/colors';
+import { usePrefs } from '../../src/context/prefs';
 
 type PrefKey = 
-    | 'darkMode'
+    | 'dark'
+    | 'metric'
     | 'pushNotifications'
     | 'showCallouts'
 
 type Preferences = Record<PrefKey, boolean>;
 
+
 export default function Settings() {
-    const[prefs, setPrefs] = useState<Preferences>({
-        darkMode: false,
-        pushNotifications: true,
-        showCallouts: true
-    })
+
+    const c = useColors();
+    const { prefs, setPref } = usePrefs();
+
     
     const sections = useMemo(
         () => [
@@ -34,16 +34,14 @@ export default function Settings() {
                     {
                         type: 'toggle' as const,
                         label: 'Switch to Dark mode',
-                        value: prefs.darkMode,
-                        onValueChange: (v: boolean) =>
-                            setPrefs((p) => ({ ...p, darkMode: v }))
+                        value: prefs.dark,
+                        onValueChange: (v: boolean) => setPref('dark', v),
                     },
                     {
                         type: 'toggle' as const,
                         label: 'Allow push notifications',
                         value: prefs.pushNotifications,
-                        onValueChange: (v: boolean) =>
-                            setPrefs((p) => ({ ...p, pushNotifications: v }))
+                        onValueChange: (v: boolean) => setPref('pushNotifications', v)
                     }
                 ]
             },
@@ -53,10 +51,15 @@ export default function Settings() {
                 items: [
                     {
                         type: 'toggle' as const,
+                        label: 'Use Metric units',
+                        value: prefs.metric,
+                        onValueChange: (v: boolean) => setPref('metric', v)
+                    },
+                    {
+                        type: 'toggle' as const,
                         label: 'Show callouts by default',
                         value: prefs.showCallouts,
-                        onValueChange: (v: boolean) => 
-                            setPrefs((p) => ({ ...p, showCallouts: v }))
+                        onValueChange: (v: boolean) => setPref('showCallouts', v)
                     }
                 ]
             }
@@ -65,31 +68,27 @@ export default function Settings() {
     )
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
             
-            {/* Header */}
             <View style={styles.header}>
                 <View style={styles.textBox}>
-                    <Text style={styles.pageTitle}>Settings</Text>
-                    <Text style={styles.subtitle}>Change your preferences below</Text>
+                    <Text style={[styles.pageTitle, { color: c.text }]}>Settings</Text>
+                    <Text style={[styles.subtitle, { color: c.subtext }]}>Change your preferences below</Text>
                 </View>
             </View>
                 
-            {/* Section mapping */}
             {sections.map((section) => (
-                <View key={section.title} style={ styles.section}>
-                    <Text style={styles.sectionTitle}>{section.title}</Text>
-                    <View style={styles.card}>
+                <View key={section.title} style={styles.section}>
+                    <Text style={[styles.sectionTitle, { color: c.text }]}>{section.title}</Text>
+                    <View style={[styles.card, { backgroundColor: c.card2, borderColor: c.subtext }]}>
 
-
-                        {/* Subsection mapping */}
                         {section.items.map((item, idx) => {
-                            // const key = `${section.title}-${idx}`;
+                            const key = `${section.title}-${idx}`;
 
                             return (
  
-                                <View style={ [{ marginTop: idx == 0 ? 0 : 10 }, styles.prefBox ]}>
-                                    <Text style={ styles.prefBoxText }>{item.label}</Text>
+                                <View key={key} style={ [{ marginTop: idx == 0 ? 0 : 10 }, styles.prefBox ]}>
+                                    <Text style={[styles.prefBoxText, { color: c.text }]}>{item.label}</Text>
                                     <Switch style={{ marginLeft:'auto' }}
                                         value={item.value}
                                         onValueChange={item.onValueChange}
@@ -107,6 +106,7 @@ export default function Settings() {
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
         padding: 16,
         paddingBottom: 28,
         gap: 16,

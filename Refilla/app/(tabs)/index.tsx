@@ -2,7 +2,7 @@ import { Station } from '../../types/station';
 import { Pressable, StyleSheet, View, Text } from 'react-native';
 import { useEffect, useState, useRef } from 'react';
 
-import { useLiveLocation } from '../../hooks/useLiveLocation';
+import { userLiveLocation } from '../../hooks/userLiveLocation';
 import ClusterStationMap from '../../components/clusterMapView';
 import { Coords } from '../../types/location';
 

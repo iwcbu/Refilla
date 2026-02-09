@@ -4,7 +4,7 @@ import { useIsFocused } from '@react-navigation/native'
 import { Coords } from '../types/location';
 
 
-export async function useLiveLocation() {
+export async function userLiveLocation() {
 
     const isFocused = useIsFocused();
     const subRef = useRef<Location.LocationSubscription | null>(null);

@@ -13,12 +13,20 @@ export function useColors() {
         border: "rgba(255,255,255,0.10)",
         card2: "#202835",
         border2:"#94a3b8",
+        yes: "#000000",
+        no: "#ffffff",
+        ticketBubble: "#9fb7f3",
       }
-    : {
+      : {
         bg: "#f6f7fb",
+        bg2: "#ebecf2",
         card: "#ffffff",
+        card2: "#ffffff",
         text: "#0f172a",
         subtext: "#64748b",
         border: "rgba(0,0,0,0.08)",
+        yes: "#ffffff",
+        no: "#000000",
+        ticketBubble: "#344e8b",
       };
 }

@@ -4,10 +4,14 @@ import { Animated } from 'react-native';
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import PrefsContext, {DEFAULT_PREFS, type Prefs } from "../src/context/prefs";
+import { useColors } from "../src/theme/colors";
 
 const STORAGE_KEY = 'prefs';
 
 export default function RootLayout() {
+
+  const c = useColors();
+  
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const fade = useRef(new Animated.Value(1)).current;
 
@@ -50,6 +54,8 @@ export default function RootLayout() {
             name="station/[id]" 
             options={{ 
               headerShown: true, 
+              headerStyle: { backgroundColor: c.card2 },
+              headerTintColor: c.text,
               title: "Station",
               headerBackTitle: "Back",
             }}
@@ -58,7 +64,19 @@ export default function RootLayout() {
             name="ticket/new"
             options={{
               headerShown: true,
-              title: "Station",
+              headerStyle: { backgroundColor: c.card2 },
+              headerTintColor: c.text,
+              title: "New Station",
+              headerBackTitle: "Back",
+            }}
+            />
+          <Stack.Screen
+            name="ticket/existing"
+            options={{
+              headerShown: true,
+              headerStyle: { backgroundColor: c.card2 },
+              headerTintColor: c.text,
+              title: "Issue a Ticket",
               headerBackTitle: "Back",
             }}
             />

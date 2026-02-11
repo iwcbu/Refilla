@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams, Stack } from "expo-router";
 import {
   StyleSheet,
   View,
@@ -16,6 +16,7 @@ import type {
   TicketCategory,
   TicketPriority,
 } from "../../types/ticket";
+import { useColors } from "../../src/theme/colors";
 
 // demo stations replace with API fetch
 const DEMO_STATIONS: Station[] = [
@@ -48,36 +49,27 @@ const DEMO_STATIONS: Station[] = [
 type Mode = "EXISTING" | "NEW";
 
 export default function NewTicket() {
+
+  const c = useColors();
+
   const params = useLocalSearchParams<{ stationId?: string }>();
 
   const [stations] = useState<Station[]>(DEMO_STATIONS);
-
-  // If user came from station detail, default to EXISTING + preselect stationId
-  const initialMode: Mode = params.stationId ? "EXISTING" : "EXISTING";
-  const [mode, setMode] = useState<Mode>(initialMode);
 
   const [selectedStationId, setSelectedStationId] = useState<string | undefined>(
     params.stationId
   );
 
   // Ticket form
+  const [id, setId] = useState<number | null>(null)
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<TicketCategory>("OTHER");
   const [priority, setPriority] = useState<TicketPriority>("MEDIUM");
-
-  // New station form (only if mode === NEW)
   const [buildingAbre, setBuildingAbre] = useState("");
   const [buildingName, setBuildingName] = useState("");
   const [buildingDetails, setBuildingDetails] = useState("");
-
-  // If stationId param changes, reflect it
-  useEffect(() => {
-    if (params.stationId) {
-      setSelectedStationId(params.stationId);
-      setMode("EXISTING");
-    }
-  }, [params.stationId]);
+  
 
   const selectedStation = useMemo(
     () => stations.find((s) => s.id === selectedStationId),
@@ -89,14 +81,9 @@ export default function NewTicket() {
     if (title.trim().length < 4) return "Title is too short.";
     if (!description.trim()) return "Please describe the issue.";
     if (description.trim().length < 10) return "Description is too short.";
-
-    if (mode === "EXISTING") {
-      if (!selectedStationId) return "Please select a station.";
-    } else {
-      if (!buildingAbre.trim()) return "Please enter a building abbreviation.";
-      if (!buildingName.trim()) return "Please enter a building name.";
-      if (!buildingDetails.trim()) return "Please add directions/details.";
-    }
+    if (!buildingAbre.trim()) return "Please enter a building abbreviation.";
+    if (!buildingName.trim()) return "Please enter a building name.";
+    if (!buildingDetails.trim()) return "Please add directions/details.";
 
     return null;
   }
@@ -119,7 +106,6 @@ export default function NewTicket() {
     let stationIdToUse = selectedStationId;
 
     try {
-      if (mode === "NEW") {
         const stationPayload: CreateStationPayload = {
           buildingAbre: buildingAbre.trim().toUpperCase(),
           buildingName: buildingName.trim(),
@@ -129,7 +115,6 @@ export default function NewTicket() {
         // TODO: call API: const createdStation = await api.createStation(stationPayload)
         // stationIdToUse = createdStation.id
         stationIdToUse = "new_station_id_demo";
-      }
 
       ticket.stationId = stationIdToUse;
 
@@ -138,7 +123,6 @@ export default function NewTicket() {
 
       Alert.alert("Submitted", "Your ticket has been created.");
 
-      // Navigate to station detail if we have an id
       if (stationIdToUse) {
         router.replace({ pathname: `/station/${stationIdToUse}`, params: { id: stationIdToUse } });
       } else {
@@ -151,168 +135,92 @@ export default function NewTicket() {
 
   return (
 
+    
+    <>
+      <Stack.Screen
+                options={{
+                headerShown: true,
+                headerStyle: { backgroundColor: c.card2 },
+                headerTintColor: c.text,
+                title: "Issue a Ticket",
+                headerBackTitle: "Back",
+                }}
+      />
+      <ScrollView style={[styles.screen, { backgroundColor: c.bg }]} contentContainerStyle={styles.content}>
+        <Text style={[styles.title, { color: c.text }]}>Add a New Station</Text>
+        <Text style={[styles.subtitle, { color: c.subtext }]}>
+          Create a ticket for an existing station, or add a new station and report the issue.
+        </Text>
 
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Report an issue</Text>
-      <Text style={styles.subtitle}>
-        Create a ticket for an existing station, or add a new station and report the issue.
-      </Text>
+        <View style={[styles.card, { backgroundColor: c.card2 }]}>
+            <Text style={[styles.cardTitle, { color: c.text }]}>New station info</Text>
 
-      {/* Mode toggle */}
-      <View style={styles.toggleRow}>
-        <Pressable
-          onPress={() => setMode("EXISTING")}
-          style={[styles.toggleBtn, mode === "EXISTING" && styles.toggleBtnActive]}
-        >
-          <Text style={[styles.toggleText, mode === "EXISTING" && styles.toggleTextActive]}>
-            Existing station
-          </Text>
-        </Pressable>
+            <Text style={[styles.label, { color: c.subtext }]}>*Building abbreviation</Text>
+            <TextInput
+              value={buildingAbre}
+              onChangeText={setBuildingAbre}
+              placeholder="e.g. CAS"
+              placeholderTextColor={c.subtext}
+              style={[styles.input, { backgroundColor: c.bg }]}
+              autoCapitalize="characters"
+            />
 
-        <Pressable
-          onPress={() => setMode("NEW")}
-          style={[styles.toggleBtn, mode === "NEW" && styles.toggleBtnActive]}
-        >
-          <Text style={[styles.toggleText, mode === "NEW" && styles.toggleTextActive]}>
-            New station
-          </Text>
-        </Pressable>
-      </View>
+            <Text style={[styles.label, { color: c.subtext }]}>*Building name</Text>
+            <TextInput
+              value={buildingName}
+              onChangeText={setBuildingName}
+              placeholder="e.g. College of Arts & Sciences"
+              placeholderTextColor={c.subtext}
+              style={[styles.input, { backgroundColor: c.bg }]}
+            />
 
-      {/* Existing station selector */}
-      {mode === "EXISTING" && (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Select a station</Text>
-
-          <View style={styles.pills}>
-            {stations.map((s) => {
-              const active = s.id === selectedStationId;
-              return (
-                <Pressable
-                  key={s.id}
-                  onPress={() => setSelectedStationId(s.id)}
-                  style={[styles.pill, active && styles.pillActive]}
-                >
-                  <Text style={[styles.pillText, active && styles.pillTextActive]}>
-                    {s.buildingAbre}
-                  </Text>
-                  <Text style={[styles.pillSub, active && styles.pillSubActive]} numberOfLines={1}>
-                    #{s.id}
-                  </Text>
-                </Pressable>
-              );
-            })}
+            <Text style={[styles.label, { color: c.subtext }]}>*Directions / details</Text>
+            <TextInput
+              value={buildingDetails}
+              onChangeText={setBuildingDetails}
+              placeholder= {buildingAbre == "" ? "Where is it exactly?" : `Where is it exactly in ${buildingAbre}?`}
+              placeholderTextColor={c.subtext}
+              style={[styles.input, styles.textArea, { backgroundColor: c.bg }]}
+              multiline
+            />
           </View>
 
-          {selectedStation && (
-            <View style={styles.preview}>
-              <Text style={styles.previewTitle}>{selectedStation.buildingName}</Text>
-              <Text style={styles.previewBody}>{selectedStation.buildingDetails}</Text>
-            </View>
-          )}
-        </View>
-      )}
+        {/* Ticket form */}
+        <View style={[styles.card, { backgroundColor: c.card2 }]}>
+          <Text style={[styles.cardTitle, { color: c.text }]}>Ticket details</Text>
 
-      {/* New station form */}
-      {mode === "NEW" && (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>New station info</Text>
-
-          <Text style={styles.label}>*Building abbreviation</Text>
+          <Text style={[styles.label, { color: c.subtext }]}>Title</Text>
           <TextInput
-            value={buildingAbre}
-            onChangeText={setBuildingAbre}
-            placeholder="e.g. CAS"
-            autoCapitalize="characters"
-            style={styles.input}
+            value={title}
+            onChangeText={setTitle}
+            placeholder="Short summary"
+            placeholderTextColor={c.subtext}
+            style={[styles.input, { backgroundColor: c.bg }]}
           />
 
-          <Text style={styles.label}>*Building name</Text>
+          <Text style={[styles.label, { color: c.text }]}>Description</Text>
           <TextInput
-            value={buildingName}
-            onChangeText={setBuildingName}
-            placeholder="e.g. College of Arts & Sciences"
-            style={styles.input}
-          />
-
-          <Text style={styles.label}>*Directions / details</Text>
-          <TextInput
-            value={buildingDetails}
-            onChangeText={setBuildingDetails}
-            placeholder= {buildingAbre == "" ? "Where is it exactly?" : `Where is it exactly in ${buildingAbre}?`}
-            style={[styles.input, styles.textArea]}
+            value={description}
+            onChangeText={setDescription}
+            placeholder="Any helpful context?" 
+            placeholderTextColor={c.subtext}
+            style={[styles.input, styles.textArea, { backgroundColor: c.bg }]}
             multiline
           />
-        </View>
-      )}
 
-      {/* Ticket form */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Ticket details</Text>
-
-        <Text style={styles.label}>Title</Text>
-        <TextInput
-          value={title}
-          onChangeText={setTitle}
-          placeholder="Short summary"
-          style={styles.input}
-        />
-
-        <Text style={styles.label}>Description</Text>
-        <TextInput
-          value={description}
-          onChangeText={setDescription}
-          placeholder="Any helpful context?"
-          style={[styles.input, styles.textArea]}
-          multiline
-        />
-
-        <Text style={styles.label}>Category</Text>
-        <View style={styles.pills}>
-          {([ "NEW STATION", "STATION DETAILS", "LEAK", "BROKEN", "FILTER", "OTHER" ] as TicketCategory[]).map((c) => {
-            const active = c === category;
-            return (
-              <Pressable
-                key={c}
-                onPress={() => setCategory(c)}
-                style={[styles.pillSmall, active && styles.pillSmallActive]}
-              >
-                <Text style={[styles.pillSmallText, active && styles.pillSmallTextActive]}>
-                  {c}
-                </Text>
-              </Pressable>
-            );
-          })}
         </View>
 
-        <Text style={styles.label}>Priority</Text>
-        <View style={styles.pills}>
-          {(["LOW", "MEDIUM", "HIGH"] as TicketPriority[]).map((p) => {
-            const active = p === priority;
-            return (
-              <Pressable
-                key={p}
-                onPress={() => setPriority(p)}
-                style={[styles.pillSmall, active && styles.pillSmallActive]}
-              >
-                <Text style={[styles.pillSmallText, active && styles.pillSmallTextActive]}>
-                  {p}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
+        {/* Submit */}
+        <Pressable onPress={submit} style={({ pressed }) => [styles.submit, pressed && styles.submitPressed]}>
+          <Text style={styles.submitText}>Submit ticket</Text>
+        </Pressable>
 
-      {/* Submit */}
-      <Pressable onPress={submit} style={({ pressed }) => [styles.submit, pressed && styles.submitPressed]}>
-        <Text style={styles.submitText}>Submit ticket</Text>
-      </Pressable>
+        <Pressable onPress={() => router.back()} style={styles.cancel}>
+          <Text style={styles.cancelText}>Cancel</Text>
+        </Pressable>
+      </ScrollView>
 
-      <Pressable onPress={() => router.back()} style={styles.cancel}>
-        <Text style={styles.cancelText}>Cancel</Text>
-      </Pressable>
-    </ScrollView>
+    </>
 
   );
 }

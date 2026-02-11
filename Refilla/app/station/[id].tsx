@@ -1,6 +1,9 @@
-import { StyleSheet, View, Text, Image } from "react-native";
+import { StyleSheet, View, Text, Pressable } from "react-native";
 import MapView, { Marker } from 'react-native-maps';
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, Stack, router } from "expo-router";;
+
+import { useColors } from "../../src/theme/colors";
+import { TabBarIcon } from "../(tabs)/_layout";
 
 import { Station } from "../../types/station";
 
@@ -25,6 +28,7 @@ function softBg(hex: string) {
 
 export default function StationDetail() {
 
+  const c = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const station: Station = {
@@ -44,49 +48,68 @@ export default function StationDetail() {
   const sColor = statusColor(station.stationStatus);
 
   return (
-    <View style={styles.screen}>
+    <>
+      <Stack.Screen
+            options={{ 
+              headerShown: true, 
+              headerStyle: { backgroundColor: c.card2 },
+              headerTintColor: c.text,
+              title: "Station",
+              headerBackTitle: "Back",
+            }}
+      />
+    <View style={[styles.screen, { backgroundColor: c.bg } ]}>
       
       <View style={styles.header}>
-        <Text style={styles.title}>Station Details</Text>
-        <Text style={styles.subtitle}>
+        <Text style={[styles.title, { color: c.text } ]}>Station Details</Text>
+        <Text style={[styles.subtitle, { color: c.subtext } ]}>
           {station.buildingName} • {station.buildingAbre}
         </Text>
       </View>
 
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: c.card2 } ]}>
 
         <View style={styles.rowBetween}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.label}>Station ID</Text>
-            <Text style={styles.value}>#{station.id}</Text>
+            <Text style={[styles.label, { color: c.subtext } ]}>Station ID</Text>
+            <Text style={[styles.value, { color: c.text } ]}>#{station.id}</Text>
           </View>
 
-          <View style={styles.statPill}>
-            <Text style={styles.statPillLabel}>Bottles saved</Text>
-            <Text style={styles.statPillValue}>{station.bottlesSaved}</Text>
+          <View style={[styles.statPill, { backgroundColor: c.card2 } ]}>
+            <Pressable 
+              style={({ pressed }) => [
+                pressed && styles.ticketPressed,
+              ]}
+              onPress={() => {
+                router.push(`/ticket/existing`)
+              }}>
+                <View style={{ width: 30, height: 30, display: 'flex', justifyContent:'center', alignItems:'center' }}>
+                  <TabBarIcon name="gear" color={ c.no == '#000000' ? '#969696' : c.no } />
+                </View>
+              </Pressable>
           </View>
         </View>
 
 
         <View style={styles.badgeRow}>
-          <View style={[styles.badge, { backgroundColor: softBg(fColor), borderColor: fColor }]}>
-            <Text style={styles.badgeKey}>Filter</Text>
+          <View style={[styles.badge, { backgroundColor: (c.yes == '#00000') ? softBg(fColor) : c.card2, borderColor: fColor }]}>
+            <Text style={[styles.badgeKey, { color: c.text } ]}>Filter</Text>
             <Text style={[styles.badgeVal, { color: fColor }]}>{station.filterStatus}</Text>
           </View>
 
-          <View style={[styles.badge, { backgroundColor: softBg(sColor), borderColor: sColor }]}>
-            <Text style={styles.badgeKey}>Status</Text>
+          <View style={[styles.badge, { backgroundColor: (c.yes == '#00000') ? softBg(fColor) : c.card2, borderColor: sColor }]}>
+            <Text style={[styles.badgeKey, { color: c.text } ]}>Status</Text>
             <Text style={[styles.badgeVal, { color: sColor }]}>{station.stationStatus}</Text>
           </View>
         </View>
         
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Where to go</Text>
-          <Text style={styles.details}>
-            <Text style={styles.detailsStrong}>{station.buildingAbre}:</Text>{" "}
+          <Text style={[styles.sectionTitle, { color: c.text } ]}>Where to go</Text>
+          <Text style={[styles.details, { color: c.text } ]}>
+            <Text style={[styles.detailsStrong, { color: c.text } ]}>{station.buildingAbre}:</Text>{" "}
             {station.buildingDetails}
           </Text>
-          <Text style={styles.meta}>Last updated: {station.lastUpdated}</Text>
+          <Text style={[styles.meta, { color: c.subtext } ]}>Last updated: {station.lastUpdated}</Text>
         </View>
 
 
@@ -94,27 +117,37 @@ export default function StationDetail() {
             <MapView
                 style={styles.map}
                 initialRegion={{
-                    latitude: Number(station.lat),
-                    longitude: Number(station.lng),
-                    latitudeDelta: 0.005,
-                    longitudeDelta: 0.005,
+                  latitude: Number(station.lat),
+                  longitude: Number(station.lng),
+                  latitudeDelta: 0.005,
+                  longitudeDelta: 0.005,
                 }}
-            >
+                >
                 <Marker
                     key={station.id}
                     coordinate={{
-                        latitude: Number(station.lat),
-                        longitude: Number(station.lng),
+                      latitude: Number(station.lat),
+                      longitude: Number(station.lng),
                     }}
-
+                    
                     />
             </MapView>
         
         </View>
       </View>
     </View>
+  </>
   );
 }
+
+
+
+// ===================================
+//
+//              STYLING
+//
+// ===================================
+
 
 const styles = StyleSheet.create({
   screen: {
@@ -171,26 +204,10 @@ const styles = StyleSheet.create({
   },
 
   statPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    padding: 3,
     borderRadius: 14,
-    backgroundColor: "#f1f5f9",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    minWidth: 120,
     alignItems: "flex-end",
   },
-  statPillLabel: {
-    fontSize: 11,
-    color: "#64748b",
-  },
-  statPillValue: {
-    marginTop: 2,
-    fontSize: 18,
-    fontWeight: "900",
-    color: "#0f172a",
-  },
-
   badgeRow: {
     flexDirection: "row",
     gap: 10,
@@ -251,5 +268,22 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 220,
     alignSelf: "center",
+  },
+  ticket: {
+    marginLeft: "auto",
+    marginRight: 20,
+    alignSelf: "center",
+
+    shadowOpacity: .2,
+    shadowOffset: {width: 1, height: 1 },
+    
+    borderRadius: 140,
+    padding: 12,
+    backgroundColor: "#77a0ff"
+
+  },
+  ticketPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.98 }],
   },
 });

@@ -1,7 +1,7 @@
 
 //  Returns distance in meters between two latitude and longitude 
 //  coordnate points using Haversine formula
-export function haversineMiles(
+export function haversineMeters(
   a: { latitude: number; longitude: number },
   b: { latitude: number; longitude: number }
 ) {
@@ -27,3 +27,8 @@ export function haversineMiles(
 
 export const meterstoMiles = (m: number) => m / 1609.344
 export const milesToFeet = (m: number) => m / 5280
+
+export const roundTo = (x: number, decimals: number) => {
+  const p = 10 ** decimals;
+  return Math.round(x * p) / p;
+};

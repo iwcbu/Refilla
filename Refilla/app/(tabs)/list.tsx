@@ -2,19 +2,16 @@ import { StyleSheet, View, Text, FlatList, Pressable } from "react-native";
 import { useMemo, useState } from "react";
 import { router } from "expo-router";
 
+import { TabBarIcon } from "./_layout";
 import { useColors } from "../../src/theme/colors";
 import { FontAwesome } from "@expo/vector-icons";
-import { milesToFeet, meterstoMiles, haversineMiles } from "../../hooks/distanceFromUser";
+
+import { timeAgo } from "../../hooks/timeAgo";
+import { milesToFeet, meterstoMiles, haversineMeters, roundTo } from "../../hooks/distanceFromUser";
 
 import type { Station } from "../../types/station";
+import { Coords } from "../../types/location";
 
-
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={33} style={{ }} {...props} />;
-}
 
 function filterColor(status: string) {
   if (status === "GREEN") return "#16a34a";
@@ -22,23 +19,11 @@ function filterColor(status: string) {
   return "#ef4444";
 }
 
-function timeAgo(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
-
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 60) {
-    if (minutes < 3) return "Just now";
-    return `${minutes}m ago`;
-  }
-
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
-}
 
 export default function MapTab() {
+
+  const [userLocation, setUserLocation] = useState<Coords>({ latitude: 42.3487, longitude: -71.1002 })
+  
 
   const c = useColors();
 
@@ -152,9 +137,14 @@ export default function MapTab() {
                 </View>
               </View>
 
-              <Text style={[styles.buildingName, { color: c.subtext }]} numberOfLines={1}>
+              <Text style={[styles.buildingName, { color: c.subtext }]}>
                 {item.buildingName}
-                Distance: {}
+              </Text>
+              <Text style={[styles.buildingName, { color: c.subtext }]}>
+
+                {/* this is a disgusting one liner I'm sorry to who is reading this */}
+                {roundTo(meterstoMiles(haversineMeters( {latitude: item.lat, longitude: item.lng}, { latitude: userLocation.latitude, longitude: userLocation.longitude })), 2)} mi
+              
               </Text>
 
               <View style={[styles.footer, { borderColor: c.border }]}>

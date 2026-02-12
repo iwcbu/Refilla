@@ -10,11 +10,12 @@ export function useColors() {
         text: "#e5e7eb",
         subtext: "#94a3b8",
         card: "#0f172a",
-        border: "rgba(255,255,255,0.10)",
         card2: "#202835",
+        border: "rgba(255,255,255,0.10)",
         border2:"#94a3b8",
         yes: "#000000",
         no: "#ffffff",
+
         ticketBubble: "#9fb7f3",
       }
       : {
@@ -25,8 +26,10 @@ export function useColors() {
         text: "#0f172a",
         subtext: "#64748b",
         border: "rgba(0,0,0,0.08)",
+        border2: "rgba(0, 0, 0, 0.1)",
         yes: "#ffffff",
         no: "#000000",
+        
         ticketBubble: "#344e8b",
       };
 }

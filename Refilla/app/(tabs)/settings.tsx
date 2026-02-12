@@ -80,7 +80,7 @@ export default function Settings() {
             {sections.map((section) => (
                 <View key={section.title} style={styles.section}>
                     <Text style={[styles.sectionTitle, { color: c.text }]}>{section.title}</Text>
-                    <View style={[styles.card, { backgroundColor: c.card2, borderColor: c.subtext }]}>
+                    <View style={[styles.card, { backgroundColor: c.card2, borderColor: c.border2 }]}>
 
                         {section.items.map((item, idx) => {
                             const key = `${section.title}-${idx}`;

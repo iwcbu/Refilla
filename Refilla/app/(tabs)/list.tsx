@@ -2,12 +2,13 @@ import { StyleSheet, View, Text, FlatList, Pressable } from "react-native";
 import { useMemo, useState } from "react";
 import { router } from "expo-router";
 
-import { TabBarIcon } from "./_layout";
+import { usePrefs } from "../../src/context/prefs";
 import { useColors } from "../../src/theme/colors";
-import { FontAwesome } from "@expo/vector-icons";
-
 import { timeAgo } from "../../hooks/timeAgo";
 import { milesToFeet, meterstoMiles, haversineMeters, roundTo } from "../../hooks/distanceFromUser";
+
+import { TabBarIcon } from "./_layout";
+import { FontAwesome } from "@expo/vector-icons";
 
 import type { Station } from "../../types/station";
 import { Coords } from "../../types/location";
@@ -26,6 +27,7 @@ export default function MapTab() {
   
 
   const c = useColors();
+  const metric = usePrefs();
 
   const [stations] = useState<Station[]>([
     {
@@ -143,8 +145,9 @@ export default function MapTab() {
               <Text style={[styles.buildingName, { color: c.subtext }]}>
 
                 {/* this is a disgusting one liner I'm sorry to who is reading this */}
-                {roundTo(meterstoMiles(haversineMeters( {latitude: item.lat, longitude: item.lng}, { latitude: userLocation.latitude, longitude: userLocation.longitude })), 2)} mi
-              
+                {metric.prefs.metric 
+                  ? roundTo((haversineMeters( {latitude: item.lat, longitude: item.lng}, { latitude: userLocation.latitude, longitude: userLocation.longitude })) / 100, 2) + " km"
+                  : roundTo(meterstoMiles(haversineMeters( {latitude: item.lat, longitude: item.lng}, { latitude: userLocation.latitude, longitude: userLocation.longitude })), 2) + " mi" }
               </Text>
 
               <View style={[styles.footer, { borderColor: c.border }]}>

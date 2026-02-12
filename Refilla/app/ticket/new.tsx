@@ -142,7 +142,7 @@ export default function NewTicket() {
                 headerShown: true,
                 headerStyle: { backgroundColor: c.card2 },
                 headerTintColor: c.text,
-                title: "Issue a Ticket",
+                title: "New Station",
                 headerBackTitle: "Back",
                 }}
       />

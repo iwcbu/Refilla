@@ -76,12 +76,11 @@ export default function ExistingStationTicket() {
 
     const c = useColors();
 
-    const params = useLocalSearchParams<{ stationId?: string }>();
+    const params = useLocalSearchParams();
+    
+    
 
     const [stations] = useState<Station[]>(DEMO_STATIONS);
-    const [selectedStationId, setSelectedStationId] = useState<string | undefined>(
-        params.stationId
-    );
 
     // Ticket form
     const [title, setTitle] = useState("");
@@ -120,7 +119,7 @@ export default function ExistingStationTicket() {
         priority,
         };
 
-        let stationIdToUse = selectedStationId;
+        let stationIdToUse = '1';
 
         try {
             const stationPayload: CreateStationPayload = {
@@ -165,7 +164,7 @@ export default function ExistingStationTicket() {
             <ScrollView style={[styles.screen, { backgroundColor: c.bg } ]} contentContainerStyle={styles.content}>
                 <Text style={[styles.title, { color: c.text } ]}>Report an issue</Text>
                 <Text style={[styles.subtitle, { color: c.subtext } ]}>
-                    Create a ticket for an existing station
+                    Create a ticket for station #{ params.stationId}
                 </Text>
 
             
@@ -193,7 +192,7 @@ export default function ExistingStationTicket() {
 
                     <Text style={styles.label}>Category</Text>
                     <View style={styles.pills}>
-                    {([ "NEW STATION", "STATION DETAILS", "LEAK", "BROKEN", "FILTER", "OTHER" ] as TicketCategory[]).map((cat) => {
+                    {([ "STATION DETAILS", "LEAK", "BROKEN", "FILTER", "OTHER" ] as TicketCategory[]).map((cat) => {
                         const active = cat === category;
                         return (
                         <Pressable

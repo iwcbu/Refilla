@@ -81,7 +81,10 @@ export default function StationDetail() {
                 pressed && styles.ticketPressed,
               ]}
               onPress={() => {
-                router.push(`/ticket/existing`)
+                router.push({ 
+                  pathname: `/ticket/existing`,
+                  params: { stationId: station.id}
+                })
               }}>
                 <View style={{ width: 30, height: 30, display: 'flex', justifyContent:'center', alignItems:'center' }}>
                   <TabBarIcon name="gear" color={ c.no == '#000000' ? '#969696' : c.no } />

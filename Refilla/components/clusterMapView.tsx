@@ -118,25 +118,25 @@ export default function ClusterStationMap({ stations, userLocation }: CsmProps) 
 
                 return (
                 
-                <Marker
-                    key={String(station.id)}
-                    coordinate={{
-                        latitude: Number(station.lat),
-                        longitude: Number(station.lng),
-                    }}
-                    >
-                    <Callout tooltip
+                    <Marker
+                        key={String(station.id)}
+                        coordinate={{
+                            latitude: Number(station.lat),
+                            longitude: Number(station.lng),
+                        }}
+                        >
+                        <Callout tooltip
 
-                        onPress={() =>
-                            
-                            router.push(`/station/${station.id}`)
-                        }
-                    >
-                        <View style={{ backgroundColor: 'white', padding: 10, borderRadius: 10, transform: [{ translateY: -40 }] }}>
-                            <Text style={{ fontWeight: '600' }}>{station.buildingAbre} Station #{station.id}</Text>
-                        </View>
-                    </Callout>
-                </Marker>
+                            onPress={() =>
+                                
+                                router.push(`/station/${station.id}`)
+                            }
+                        >
+                            <View style={{ backgroundColor: 'white', padding: 10, borderRadius: 10, transform: [{ translateY: -40 }] }}>
+                                <Text style={{ fontWeight: '600' }}>{station.buildingAbre} Station #{station.id}</Text>
+                            </View>
+                        </Callout>
+                    </Marker>
             )
         })}
 

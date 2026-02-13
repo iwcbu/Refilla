@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet } from 'react-native';
+import { Image, Text, View, StyleSheet } from 'react-native';
 import { useState, useMemo, useRef } from 'react';
 import { router } from 'expo-router';
 
@@ -73,6 +73,16 @@ export default function ClusterStationMap({ stations, userLocation }: CsmProps) 
         return index.getClusters(bbox, zoom) as any[];
     }, [index, region]);
 
+    const [selectedId, setSelectedId] = useState<number | null>(null)  
+    const markerRefs = useRef<Record<string, any>>({});   
+    
+    const clearSelection = () => { 
+        if (selectedId != null) {
+            markerRefs.current[String(selectedId)]?.hideCallout?.();
+        }
+        setSelectedId(null);
+    }
+    
 
     return ( 
 
@@ -85,6 +95,8 @@ export default function ClusterStationMap({ stations, userLocation }: CsmProps) 
             initialRegion={ region }
             onRegionChangeComplete={setRegion}
             showsUserLocation
+            onTouchMove={clearSelection}
+
         >   
             {clusters.map((f) => {
                 const [lng, lat] = f.geometry.coordinates;
@@ -115,28 +127,38 @@ export default function ClusterStationMap({ stations, userLocation }: CsmProps) 
                 }
 
                 const station = f.properties.station;
-
+                
                 return (
                 
                     <Marker
                         key={String(station.id)}
+                        ref={(r) => { if (r) markerRefs.current[String(station.id)] = r; }}
                         coordinate={{
                             latitude: Number(station.lat),
                             longitude: Number(station.lng),
                         }}
+                        image={
+                            selectedId === station.id
+                            ? require("../assets/station-icon-selected.png")
+                            : require("../assets/station-icon.png")
+                        }
+                        onPress={() => {
+                            setSelectedId(station.id);
+                            markerRefs.current[String(station.id)]?.showCallout?.();
+                        }}
                         >
-                        <Callout tooltip
-
-                            onPress={() =>
-                                
-                                router.push(`/station/${station.id}`)
-                            }
+                        <Callout
+                            tooltip
+                            onPress={() => router.push(`/station/${station.id}`)}
                         >
-                            <View style={{ backgroundColor: 'white', padding: 10, borderRadius: 10, transform: [{ translateY: -40 }] }}>
-                                <Text style={{ fontWeight: '600' }}>{station.buildingAbre} Station #{station.id}</Text>
+                            <View style={styles.calloutCard}>
+                            <Text style={styles.calloutText}>
+                                {station.buildingAbre ?? "Station"} #{station.id}
+                            </Text>
+                            <Text style={styles.calloutSub}>Tap to view details</Text>
                             </View>
                         </Callout>
-                    </Marker>
+                        </Marker>
             )
         })}
 
@@ -172,5 +194,26 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "800",
   },
-});
+  calloutCard: {
+    maxWidth: 250,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: "white",
+    borderWidth: 2,
+    borderColor: "rgba(0,0,0,0.10)",
 
+  },
+  calloutText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  calloutSub: {
+    marginTop: 4,
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#64748b",
+  }
+
+})

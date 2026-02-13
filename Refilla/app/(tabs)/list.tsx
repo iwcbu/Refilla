@@ -5,13 +5,14 @@ import { router } from "expo-router";
 import { usePrefs } from "../../src/context/prefs";
 import { useColors } from "../../src/theme/colors";
 import { timeAgo } from "../../hooks/timeAgo";
-import { milesToFeet, meterstoMiles, haversineMeters, roundTo } from "../../hooks/distanceFromUser";
+import { meterstoMiles, haversineMeters, roundTo } from "../../hooks/distanceFromUser";
+
 
 import { TabBarIcon } from "./_layout";
-import { FontAwesome } from "@expo/vector-icons";
 
 import type { Station } from "../../types/station";
 import { Coords } from "../../types/location";
+import { userLiveLocation } from '../../hooks/userLiveLocation';
 
 
 function filterColor(status: string) {
@@ -23,9 +24,12 @@ function filterColor(status: string) {
 
 export default function MapTab() {
 
-  const [userLocation, setUserLocation] = useState<Coords>({ latitude: 42.3487, longitude: -71.1002 })
-  
-
+  const userLoc = userLiveLocation();
+  if (userLoc.coords === null) {
+    userLoc.coords = { latitude: 0, longitude: 0}
+  } 
+  const userLocation = userLoc.coords
+ 
   const c = useColors();
   const metric = usePrefs();
 
@@ -202,12 +206,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#77a0ff"
 
   },
-
   ticketPressed: {
     opacity: 0.85,
     transform: [{ scale: 0.98 }],
   },
-
   grid: {
     paddingTop: 6,
     paddingBottom: 24,

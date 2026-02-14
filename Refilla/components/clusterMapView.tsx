@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import AnimatedClusterBubble from './animatedClusterBubble';
 import Supercluster from 'supercluster';
 import MapView, { Callout, Marker } from 'react-native-maps';
+import { useNewMarkerLoc } from '../src/context/newMarkerLocation';
 
 
 import { Station } from '../types/station';
@@ -29,17 +30,20 @@ function regionToZoom(lngDelta: number) {
 
 
 type CsmProps = {
-    stations: Station[],
-    userLocation: Coords
+    stations: Station[];
+    userLocation: Coords | null;
 }
 
 export default function ClusterStationMap({ stations, userLocation }: CsmProps) {
 
     const mapRef = useRef<any>(null);
+    const { setNewMarkerLoc } = useNewMarkerLoc();
 
+    
+    // if user location doesn't render use boston
     const [region, setRegion] = useState({
-        latitude: userLocation.latitude,
-        longitude: userLocation.longitude,
+        latitude: userLocation?.latitude ?? 42.3487,
+        longitude: userLocation?.longitude ?? -71.1002,
         latitudeDelta: 0.05,
         longitudeDelta: 0.05,
     });
@@ -96,6 +100,19 @@ export default function ClusterStationMap({ stations, userLocation }: CsmProps) 
             onRegionChangeComplete={setRegion}
             showsUserLocation
             onTouchMove={clearSelection}
+            onLongPress={(e) => {
+                const { latitude, longitude } = e.nativeEvent.coordinate;
+
+                setRegion((r) => ({
+                    ...r,
+                    latitude,
+                    longitude,
+                }));
+
+                setNewMarkerLoc({latitude, longitude})
+                router.push({ pathname: '/ticket/new', })
+                }
+            }
 
         >   
             {clusters.map((f) => {

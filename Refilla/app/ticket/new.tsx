@@ -1,22 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { router, useLocalSearchParams, Stack } from "expo-router";
-import {
-  StyleSheet,
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  ScrollView,
-  Alert,
-} from "react-native";
-import type { Station } from "../../types/station";
-import type {
-  CreateStationPayload,
-  CreateTicketPayload,
-  TicketCategory,
-  TicketPriority,
-} from "../../types/ticket";
+import { StyleSheet, View, Text, TextInput, Pressable, ScrollView, Alert, } from "react-native";
+import MapView, { Marker } from "react-native-maps";
+
 import { useColors } from "../../src/theme/colors";
+import { useNewMarkerLoc } from "../../src/context/newMarkerLocation";
+
+import type { Station } from "../../types/station";
+import type { CreateStationPayload, CreateTicketPayload, TicketCategory, TicketPriority, } from "../../types/ticket";
 
 // demo stations replace with API fetch
 const DEMO_STATIONS: Station[] = [
@@ -51,6 +42,7 @@ type Mode = "EXISTING" | "NEW";
 export default function NewTicket() {
 
   const c = useColors();
+  const nml = useNewMarkerLoc();
 
   const params = useLocalSearchParams<{ stationId?: string }>();
 
@@ -69,12 +61,8 @@ export default function NewTicket() {
   const [buildingAbre, setBuildingAbre] = useState("");
   const [buildingName, setBuildingName] = useState("");
   const [buildingDetails, setBuildingDetails] = useState("");
-  
 
-  const selectedStation = useMemo(
-    () => stations.find((s) => s.id === selectedStationId),
-    [stations, selectedStationId]
-  );
+  const newStationId = stations.length
 
   function validate(): string | null {
     if (!title.trim()) return "Please add a short title.";
@@ -132,6 +120,7 @@ export default function NewTicket() {
       Alert.alert("Error", "Could not submit ticket. Please try again.");
     }
   }
+  
 
   return (
 
@@ -151,6 +140,34 @@ export default function NewTicket() {
         <Text style={[styles.subtitle, { color: c.subtext }]}>
           Create a ticket for an existing station, or add a new station and report the issue.
         </Text>
+
+        <View style={styles.mapWrap}>
+            <MapView
+                showsUserLocation
+                style={styles.map}
+                initialRegion={{
+                  latitude: Number(nml.markerLoc?.latitude),
+                  longitude: Number(nml.markerLoc?.longitude),
+                  latitudeDelta: 0.005,
+                  longitudeDelta: 0.005,
+                }}
+                onLongPress={(e) => {
+                  const { latitude, longitude } = e.nativeEvent.coordinate;
+                  nml.setNewMarkerLoc({latitude, longitude})
+                }
+              }
+
+                >
+                <Marker
+                    coordinate={{
+                      latitude: Number(nml.markerLoc?.latitude),
+                      longitude: Number(nml.markerLoc?.longitude),
+                    }}
+                    image={require("../../assets/station-icon.png")}
+                    />
+            </MapView>
+        
+        </View>
 
         <View style={[styles.card, { backgroundColor: c.card2 }]}>
             <Text style={[styles.cardTitle, { color: c.text }]}>New station info</Text>
@@ -343,4 +360,17 @@ const styles = StyleSheet.create({
 
   cancel: { alignItems: "center", paddingVertical: 10 },
   cancelText: { color: "#64748b", fontWeight: "800" },
+
+  mapWrap: {
+    marginTop: 14,
+    borderRadius: 16,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  map: {
+    width: "100%",
+    height: 220,
+    alignSelf: "center",
+  },
 });

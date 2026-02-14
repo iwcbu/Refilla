@@ -12,8 +12,8 @@ import { TabBarIcon } from "./_layout";
 
 import type { Station } from "../../types/station";
 import { Coords } from "../../types/location";
-import { userLiveLocation } from '../../hooks/userLiveLocation';
-
+import { useLiveLocation } from "../../src/context/userLocation";
+import { useNewMarkerLoc } from "../../src/context/newMarkerLocation";
 
 function filterColor(status: string) {
   if (status === "GREEN") return "#16a34a";
@@ -24,7 +24,7 @@ function filterColor(status: string) {
 
 export default function MapTab() {
 
-  const userLoc = userLiveLocation();
+  const userLoc = useLiveLocation();
   if (userLoc.coords === null) {
     userLoc.coords = { latitude: 0, longitude: 0}
   } 
@@ -32,6 +32,7 @@ export default function MapTab() {
  
   const c = useColors();
   const metric = usePrefs();
+  const { setNewMarkerLoc } = useNewMarkerLoc();
 
   const [stations] = useState<Station[]>([
     {
@@ -104,6 +105,7 @@ export default function MapTab() {
                 pressed && styles.ticketPressed,
               ]}
           onPress={() => {
+            setNewMarkerLoc({ latitude: userLocation.latitude, longitude: userLocation.longitude })
             router.push(`/ticket/new`)
           }}>
             <View style={{ width: 30, height: 30, display: 'flex', justifyContent:'center', alignItems:'center' }}>
@@ -125,6 +127,7 @@ export default function MapTab() {
           return (
             <Pressable
               onPress={() => {
+                
                 router.push(`/station/${item.id}`);
               }}
               style={({ pressed }) => [

@@ -2,9 +2,8 @@ import { Station } from '../../types/station';
 import { Pressable, StyleSheet, View, Text } from 'react-native';
 import { useEffect, useState, useRef } from 'react';
 
-import { userLiveLocation } from '../../hooks/userLiveLocation';
+import { useLiveLocation } from '../../src/context/userLocation';
 import ClusterStationMap from '../../components/clusterMapView';
-import { Coords } from '../../types/location';
 
 
 export default function App() {
@@ -61,15 +60,18 @@ export default function App() {
   ]);
 
 
+  const { coords, start, error } = useLiveLocation();
 
-  const [userLocation, setUserLocation] = useState<Coords>({ latitude: 42.3487, longitude: -71.1002 })
-
+  // starts live location
+  useEffect(() => {
+    start();
+  }, []);
   
   return (
 
     <View style={styles.container}>
 
-      <ClusterStationMap stations={ stations } userLocation={ userLocation } />
+      <ClusterStationMap stations={ stations } userLocation={ coords } />
     
     </View>
 

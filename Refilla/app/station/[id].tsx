@@ -1,11 +1,12 @@
-import { StyleSheet, View, Text, Pressable } from "react-native";
+import { ActivityIndicator, StyleSheet, View, Text, Pressable } from "react-native";
 import MapView, { Marker } from 'react-native-maps';
 import { useLocalSearchParams, Stack, router } from "expo-router";;
 
 import { useColors } from "../../src/theme/colors";
 import { TabBarIcon } from "../(tabs)/_layout";
 
-import { Station } from "../../types/station";
+
+import { getStation } from "../../src/db/stationsRepo";
 
 
 function filterColor(status: string) {
@@ -28,21 +29,18 @@ function softBg(hex: string) {
 
 export default function StationDetail() {
 
-  const c = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const station = getStation(Number(id));
+  if (station === null) {
+    return (
+      <View style={styles.fetchingBox}>
+          <Text style={styles.fetchingText}>Fetching, one moment...</Text>
+          <ActivityIndicator size='large' />
+      </View>
+    )
+  }
 
-  const station: Station = {
-    id: id ?? "unknown",
-    lat: 42.3493,
-    lng: -71.1002,
-    buildingAbre: "TST",
-    buildingName: "TESTSTATION",
-    buildingDetails: "Test description, describes where to go",
-    filterStatus: "GREEN",
-    stationStatus: "PENDING",
-    bottlesSaved: 300,
-    lastUpdated: "Test",
-  };
+  const c = useColors();
 
   const fColor = filterColor(station.filterStatus);
   const sColor = statusColor(station.stationStatus);
@@ -112,7 +110,7 @@ export default function StationDetail() {
             <Text style={[styles.detailsStrong, { color: c.text } ]}>{station.buildingAbre}:</Text>{" "}
             {station.buildingDetails}
           </Text>
-          <Text style={[styles.meta, { color: c.subtext } ]}>Last updated: {station.lastUpdated}</Text>
+          <Text style={[styles.meta, { color: c.subtext } ]}>Last updated: {station.updated_at}</Text>
         </View>
 
 
@@ -288,5 +286,18 @@ const styles = StyleSheet.create({
   ticketPressed: {
     opacity: 0.85,
     transform: [{ scale: 0.98 }],
+  },
+  fetchingBox: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: 'center',
+    gap: 12,
+    padding: 24,
+    transform: [{ translateY: -40 }],
+
+  },
+  fetchingText: {
+    fontSize: 16,
+    opacity: 0.8,
   },
 });

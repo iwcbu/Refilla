@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
 
-type MarkerLoc = { latitude: number | null; longitude: number | null } | null;
+export type MarkerLoc = { latitude: number | null; longitude: number | null } | null;
 
 type NewMarkerLocCtx = {
   markerLoc: MarkerLoc;

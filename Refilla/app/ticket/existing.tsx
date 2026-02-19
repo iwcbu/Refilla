@@ -30,7 +30,6 @@ const DEMO_STATIONS: Station[] = [
       buildingDetails: "1st floor, middle of cafe",
       filterStatus: "GREEN",
       stationStatus: "ACTIVE",
-      bottlesSaved: 1280,
       lastUpdated: new Date().toISOString(),
     },
     {
@@ -42,7 +41,6 @@ const DEMO_STATIONS: Station[] = [
       buildingDetails: "Basement hallway near bathrooms",
       filterStatus: "YELLOW",
       stationStatus: "ACTIVE",
-      bottlesSaved: 30000,
       lastUpdated: new Date().toISOString(),
     },
     {
@@ -54,7 +52,6 @@ const DEMO_STATIONS: Station[] = [
       buildingDetails: "Basement hallway near bathrooms",
       filterStatus: "RED",
       stationStatus: "ACTIVE",
-      bottlesSaved: 50000,
       lastUpdated: new Date().toISOString(),
     },
     {
@@ -66,7 +63,6 @@ const DEMO_STATIONS: Station[] = [
       buildingDetails: "Basement hallway near bathrooms",
       filterStatus: "GREEN",
       stationStatus: "ACTIVE",
-      bottlesSaved: 10000,
       lastUpdated: new Date().toISOString(),
     },
   ];

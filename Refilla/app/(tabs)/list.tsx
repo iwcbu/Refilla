@@ -13,7 +13,9 @@ import { TabBarIcon } from "./_layout";
 import type { Station } from "../../types/station";
 import { Coords } from "../../types/location";
 import { useLiveLocation } from "../../src/context/userLocation";
-import { useNewMarkerLoc } from "../../src/context/newMarkerLocation";
+import { useNewMarkerLoc } from "../../src/context/newMarkerLocation";
+
+import { createStation, listStations, deleteStation } from "../../src/db/stationsRepo";
 
 function filterColor(status: string) {
   if (status === "GREEN") return "#16a34a";
@@ -24,6 +26,10 @@ function filterColor(status: string) {
 
 export default function MapTab() {
 
+  const stations = listStations();
+  console.log(stations);
+  
+  
   const userLoc = useLiveLocation();
   if (userLoc.coords === null) {
     userLoc.coords = { latitude: 0, longitude: 0}
@@ -34,56 +40,6 @@ export default function MapTab() {
   const metric = usePrefs();
   const { setNewMarkerLoc } = useNewMarkerLoc();
 
-  const [stations] = useState<Station[]>([
-    {
-      id: "1",
-      lat: 42.3505,
-      lng: -71.1054,
-      buildingAbre: "GSU",
-      buildingName: "George Sherman Union",
-      buildingDetails: "1st floor, middle of cafe",
-      filterStatus: "GREEN",
-      stationStatus: "ACTIVE",
-      bottlesSaved: 1280,
-      lastUpdated: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      lat: 42.3493,
-      lng: -71.1002,
-      buildingAbre: "CAS",
-      buildingName: "College of Arts and Science",
-      buildingDetails: "Basement hallway near bathrooms",
-      filterStatus: "YELLOW",
-      stationStatus: "ACTIVE",
-      bottlesSaved: 30000,
-      lastUpdated: new Date().toISOString(),
-    },
-    {
-      id: "3",
-      lat: 42.3241,
-      lng: -71.105,
-      buildingAbre: "CDS",
-      buildingName: "College of Data and Computer Sciences",
-      buildingDetails: "Basement hallway near bathrooms",
-      filterStatus: "RED",
-      stationStatus: "ACTIVE",
-      bottlesSaved: 50000,
-      lastUpdated: new Date().toISOString(),
-    },
-    {
-      id: "4",
-      lat: 42.4533,
-      lng: -71.1052,
-      buildingAbre: "CDS",
-      buildingName: "College of Data and Computer Sciences",
-      buildingDetails: "Basement hallway near bathrooms",
-      filterStatus: "GREEN",
-      stationStatus: "ACTIVE",
-      bottlesSaved: 10000,
-      lastUpdated: new Date().toISOString(),
-    },
-  ]);
 
   const activeStations = useMemo(
     () => stations.filter((s) => s.stationStatus === "ACTIVE"),
@@ -117,7 +73,7 @@ export default function MapTab() {
       <FlatList
         data={activeStations}
         numColumns={2}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => String(item.id)}
         contentContainerStyle={styles.grid}
         columnWrapperStyle={styles.row}
         showsVerticalScrollIndicator={false}
@@ -159,7 +115,7 @@ export default function MapTab() {
 
               <View style={[styles.footer, { borderColor: c.border }]}>
                 <Text style={[styles.meta, { color: c.subtext }]}>
-                    Updated: {timeAgo(item.lastUpdated)}
+                    Updated: {timeAgo(item.updated_at)}
                 </Text>
               </View>
             </Pressable>

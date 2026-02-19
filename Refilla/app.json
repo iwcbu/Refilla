@@ -40,7 +40,8 @@
         {
           "locationWhenInUsePermission": "Allow Refilla to use your location"
         }
-      ]
+      ],
+      "expo-sqlite"
     ]
   }
 }

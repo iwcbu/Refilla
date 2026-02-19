@@ -4,53 +4,19 @@ import { StyleSheet, View, Text, TextInput, Pressable, ScrollView, Alert, } from
 import MapView, { Marker } from "react-native-maps";
 
 import { useColors } from "../../src/theme/colors";
-import { useNewMarkerLoc } from "../../src/context/newMarkerLocation";
+import { MarkerLoc, useNewMarkerLoc } from "../../src/context/newMarkerLocation";
 
 import type { Station } from "../../types/station";
 import type { CreateStationPayload, CreateTicketPayload, TicketCategory, TicketPriority, } from "../../types/ticket";
+import { createStation } from "../../src/db/stationsRepo";
 
-// demo stations replace with API fetch
-const DEMO_STATIONS: Station[] = [
-  {
-    id: "1",
-    lat: 42.3505,
-    lng: -71.1054,
-    buildingAbre: "GSU",
-    buildingName: "George Sherman Union",
-    buildingDetails: "1st floor, middle of cafe",
-    filterStatus: "GREEN",
-    stationStatus: "ACTIVE",
-    bottlesSaved: 1280,
-    lastUpdated: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    lat: 42.3493,
-    lng: -71.1002,
-    buildingAbre: "CAS",
-    buildingName: "CAS",
-    buildingDetails: "Basement hallway near bathrooms",
-    filterStatus: "YELLOW",
-    stationStatus: "ACTIVE",
-    bottlesSaved: 30000,
-    lastUpdated: new Date().toISOString(),
-  },
-];
 
-type Mode = "EXISTING" | "NEW";
 
 export default function NewTicket() {
 
   const c = useColors();
   const nml = useNewMarkerLoc();
 
-  const params = useLocalSearchParams<{ stationId?: string }>();
-
-  const [stations] = useState<Station[]>(DEMO_STATIONS);
-
-  const [selectedStationId, setSelectedStationId] = useState<string | undefined>(
-    params.stationId
-  );
 
   // Ticket form
   const [id, setId] = useState<number | null>(null)
@@ -62,13 +28,13 @@ export default function NewTicket() {
   const [buildingName, setBuildingName] = useState("");
   const [buildingDetails, setBuildingDetails] = useState("");
 
-  const newStationId = stations.length
 
   function validate(): string | null {
+    
     if (!title.trim()) return "Please add a short title.";
     if (title.trim().length < 4) return "Title is too short.";
     if (!description.trim()) return "Please describe the issue.";
-    if (description.trim().length < 10) return "Description is too short.";
+    if (description.trim().length < 5) return "Description is too short.";
     if (!buildingAbre.trim()) return "Please enter a building abbreviation.";
     if (!buildingName.trim()) return "Please enter a building name.";
     if (!buildingDetails.trim()) return "Please add directions/details.";
@@ -77,6 +43,12 @@ export default function NewTicket() {
   }
 
   async function submit() {
+
+    if (nml.markerLoc?.latitude == null || nml.markerLoc?.longitude == null) {
+      Alert.alert("Missing info please set a location");
+      return
+    }
+
     const err = validate();
     if (err) {
       Alert.alert("Missing info", err);
@@ -91,7 +63,6 @@ export default function NewTicket() {
       priority,
     };
 
-    let stationIdToUse = selectedStationId;
 
     try {
         const stationPayload: CreateStationPayload = {
@@ -102,17 +73,27 @@ export default function NewTicket() {
 
         // TODO: call API: const createdStation = await api.createStation(stationPayload)
         // stationIdToUse = createdStation.id
-        stationIdToUse = "new_station_id_demo";
 
-      ticket.stationId = stationIdToUse;
+        const id = createStation({
+          lat: nml.markerLoc?.latitude,
+          lng: nml.markerLoc?.longitude,
+
+          buildingAbre: buildingAbre,
+          buildingName: buildingName,
+          buildingDetails: buildingDetails,
+
+          filterStatus: 'RED',
+          stationStatus: 'PENDING',
+        })
+        
+      ticket.stationId
 
       // TODO: call API: const createdTicket = await api.createTicket(ticket)
-      const createdTicketId = "new_ticket_id_demo";
 
       Alert.alert("Submitted", "Your ticket has been created.");
 
-      if (stationIdToUse) {
-        router.replace({ pathname: `/station/${stationIdToUse}`, params: { id: stationIdToUse } });
+      if (id) {
+        router.replace({ pathname: `/station/${id}`});
       } else {
         router.back();
       }

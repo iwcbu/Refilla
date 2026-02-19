@@ -8,7 +8,7 @@ import MapView, { Callout, Marker } from 'react-native-maps';
 import { useNewMarkerLoc } from '../src/context/newMarkerLocation';
 
 
-import { Station } from '../types/station';
+import { StationRow } from '../src/db/stationsRepo';
 import { Coords } from '../types/location';
 
 function regionToBBox(region: any) {
@@ -30,7 +30,7 @@ function regionToZoom(lngDelta: number) {
 
 
 type CsmProps = {
-    stations: Station[];
+    stations: StationRow[];
     userLocation: Coords | null;
 }
 

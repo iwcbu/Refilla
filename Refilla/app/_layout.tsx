@@ -8,6 +8,9 @@ import { useColors } from "../src/theme/colors";
 import { LocationProvider } from "../src/context/userLocation";
 import { NewMarkerLocProvider } from '../src/context/newMarkerLocation';
 
+import { configureDb } from "../src/db/database";
+import { migrate } from "../src/db/migrations";
+
 const STORAGE_KEY = 'prefs';
 
 export default function RootLayout() {
@@ -18,10 +21,14 @@ export default function RootLayout() {
   const fade = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-  (async () => {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
-    if (raw !== null) setPrefs({...DEFAULT_PREFS, ...JSON.parse(raw)});
-  })();
+
+    configureDb();
+    migrate();
+
+    (async () => {
+      const raw = await AsyncStorage.getItem(STORAGE_KEY);
+      if (raw !== null) setPrefs({...DEFAULT_PREFS, ...JSON.parse(raw)});
+    })();
   }, []);
 
   const setPref = async <K extends keyof Prefs>(key: K, value: Prefs[K]) => {

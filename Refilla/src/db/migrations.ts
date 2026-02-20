@@ -26,10 +26,16 @@ export function migrate() {
 
     CREATE TABLE IF NOT EXISTS tickets (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
       station_id INTEGER NOT NULL,
+
       title TEXT NOT NULL,
       body TEXT,
+
       status TEXT NOT NULL DEFAULT 'OPEN',
+      category TEXT NOT NULL DEFAULT 'OTHER',
+      priority TEXT NOT NULL DEFAULT 'MEDIUM',
+
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY (station_id) REFERENCES stations(id) ON DELETE CASCADE

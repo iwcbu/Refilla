@@ -4,10 +4,16 @@ import { db } from "./database";
 
 export type TicketRow = {
   id: number;
+  user_id: number,
   station_id: number;
+
   title: string;
   body: string | null;
   status: string;
+
+  category: string,
+  priority: string;
+
   created_at: string;
   updated_at: string;
 };
@@ -20,31 +26,51 @@ export function listTicketsForStation(stationId: number): TicketRow[] {
 }
 
 export function createTicket(input: {
-  stationId: number;
+  user_id: number,
+  station_id: number;
   title: string;
-  body?: string;
+  body?: string | null;
   status?: string;
+  category?: string;
+  priority?: string;
 }): number {
   const res = db.runSync(
-    `INSERT INTO tickets (station_id, title, body, status)
-     VALUES (?, ?, ?, ?);`,
-    [input.stationId, input.title, input.body ?? null, input.status ?? "OPEN"]
+    `INSERT INTO tickets (user_id, station_id, title, body, status, category, priority)
+     VALUES (?, ?, ?, ?, ?, ?, ?);`,
+    [
+      input.user_id, 
+      input.station_id, 
+      input.title, 
+      input.body ?? null, 
+      input.status ?? "OPEN", 
+      input.category ?? "OTHER", 
+      input.priority ?? "MEDIUM",
+    ]
   );
   return res.lastInsertRowId;
 }
 
 export function updateTicket(
   id: number,
-  patch: Partial<Pick<TicketRow, "title" | "body" | "status">>
+  patch: Partial<Pick<TicketRow, "title" | "body" | "status" | "category" | "priority">>
 ) {
   db.runSync(
     `UPDATE tickets SET
       title = COALESCE(?, title),
       body = COALESCE(?, body),
       status = COALESCE(?, status),
-      updated_at = datetime('now')
+      category = COALESCE(?, category),
+      priority = COALESCE(?, priority)
+      updated_at = datetime('now'),
      WHERE id = ?;`,
-    [patch.title ?? null, patch.body ?? null, patch.status ?? null, id]
+    [
+      patch.title ?? null, 
+      patch.body ?? null, 
+      patch.status ?? null, 
+      patch.category ?? null,
+      patch.priority ?? null,
+      id
+    ]
   );
 }
 

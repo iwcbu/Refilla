@@ -5,11 +5,11 @@
     "scheme": "refilla",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/station-icon.png",
+    "icon": "./assets/refilla-app-icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/station-icon.png",
+      "image": "./assets/refilla-app-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -19,7 +19,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/station-icon.png",
+        "foregroundImage": "refilla-app-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,

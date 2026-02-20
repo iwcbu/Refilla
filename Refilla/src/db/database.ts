@@ -2,7 +2,7 @@
 
 import * as SQLite from "expo-sqlite";
 
-export const db = SQLite.openDatabaseSync("refilla_v2.db");
+export const db = SQLite.openDatabaseSync("refilla_v3.db");
 
 export function configureDb() {
   db.execSync(`

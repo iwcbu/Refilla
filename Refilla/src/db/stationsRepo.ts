@@ -5,9 +5,9 @@ import { FilterStatus, StationStatus } from "../../types/station";
 
 export type StationRow = {
   id: number;
+
   lat: number;
   lng: number;
-
   buildingAbre: string | null;
   buildingName: string | null;
   buildingDetails: string | null;

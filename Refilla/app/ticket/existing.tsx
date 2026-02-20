@@ -1,91 +1,36 @@
 import { useEffect, useMemo, useState } from "react";
 import { router, useLocalSearchParams, Stack } from "expo-router";
-import {
-  StyleSheet,
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  ScrollView,
-  Alert,
-} from "react-native";
-import type { Station } from "../../types/station";
-import type {
-  CreateStationPayload,
-  CreateTicketPayload,
-  TicketCategory,
-  TicketPriority,
-} from "../../types/ticket";
+import { StyleSheet, View, Text, TextInput, Pressable, ScrollView, Alert } from "react-native";
+import { ActivityIndicator } from "react-native";
+
+import type { CreateStationPayload, CreateTicketPayload, TicketCategory, TicketPriority } from "../../types/ticket";
 
 import { useColors } from "../../src/theme/colors";
+import { getStation, StationRow } from '../../src/db/stationsRepo';
+import { createTicket, TicketRow } from "../../src/db/ticketsRepo";
 
-// demo stations replace with API fetch
-const DEMO_STATIONS: Station[] = [
-    {
-      id: "1",
-      lat: 42.3505,
-      lng: -71.1054,
-      buildingAbre: "GSU",
-      buildingName: "George Sherman Union",
-      buildingDetails: "1st floor, middle of cafe",
-      filterStatus: "GREEN",
-      stationStatus: "ACTIVE",
-      lastUpdated: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      lat: 42.3493,
-      lng: -71.1002,
-      buildingAbre: "CAS",
-      buildingName: "College of Arts and Science",
-      buildingDetails: "Basement hallway near bathrooms",
-      filterStatus: "YELLOW",
-      stationStatus: "ACTIVE",
-      lastUpdated: new Date().toISOString(),
-    },
-    {
-      id: "3",
-      lat: 42.3241,
-      lng: -71.105,
-      buildingAbre: "CDS",
-      buildingName: "College of Data and Computer Sciences",
-      buildingDetails: "Basement hallway near bathrooms",
-      filterStatus: "RED",
-      stationStatus: "ACTIVE",
-      lastUpdated: new Date().toISOString(),
-    },
-    {
-      id: "4",
-      lat: 42.4533,
-      lng: -71.1052,
-      buildingAbre: "CDS",
-      buildingName: "College of Data and Computer Sciences",
-      buildingDetails: "Basement hallway near bathrooms",
-      filterStatus: "GREEN",
-      stationStatus: "ACTIVE",
-      lastUpdated: new Date().toISOString(),
-    },
-  ];
 
 
 export default function ExistingStationTicket() {
 
+    const { stationId }  = useLocalSearchParams<{ stationId: string }>();
+    const station = getStation(Number(stationId));
+    if (station == null) {
+        return (
+            <View style={styles.fetchingBox}>
+            <Text style={styles.fetchingText}>Fetching, one moment...</Text>
+            <ActivityIndicator size='large' />
+        </View>
+        )
+    }
+
     const c = useColors();
 
-    const params = useLocalSearchParams();
-    
-    
-
-    const [stations] = useState<Station[]>(DEMO_STATIONS);
-
-    // Ticket form
+// Ticket form
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [category, setCategory] = useState<TicketCategory>("OTHER");
     const [priority, setPriority] = useState<TicketPriority>("MEDIUM");
-    const [buildingAbre, setBuildingAbre] = useState("");
-    const [buildingName, setBuildingName] = useState("");
-    const [buildingDetails, setBuildingDetails] = useState("");
 
 
     function validate(): string | null {
@@ -93,9 +38,6 @@ export default function ExistingStationTicket() {
         if (title.trim().length < 4) return "Title is too short.";
         if (!description.trim()) return "Please describe the issue.";
         if (description.trim().length < 10) return "Description is too short.";
-        if (!buildingAbre.trim()) return "Please enter a building abbreviation.";
-        if (!buildingName.trim()) return "Please enter a building name.";
-        if (!buildingDetails.trim()) return "Please add directions/details.";
 
         return null;
     }
@@ -115,28 +57,19 @@ export default function ExistingStationTicket() {
         priority,
         };
 
-        let stationIdToUse = '1';
 
         try {
-            const stationPayload: CreateStationPayload = {
-                buildingAbre: buildingAbre.trim().toUpperCase(),
-                buildingName: buildingName.trim(),
-                buildingDetails: buildingDetails.trim(),
-            };
 
-            // TODO: call API: const createdStation = await api.createStation(stationPayload)
-            // stationIdToUse = createdStation.id
-            stationIdToUse = "new_station_id_demo";
-
-            ticket.stationId = stationIdToUse;
+            ticket.stationId = stationId;
 
             // TODO: call API: const createdTicket = await api.createTicket(ticket)
-            const createdTicketId = "new_ticket_id_demo";
 
+            // const id = createTicket();
+            
             Alert.alert("Submitted", "Your ticket has been created.");
 
-            if (stationIdToUse) {
-                router.replace({ pathname: `/station/${stationIdToUse}`, params: { id: stationIdToUse } });
+            if (stationId) {
+                router.replace({ pathname: `/station/${stationId}`, params: { id: stationId } });
             } else {
                 router.back();
             }
@@ -160,7 +93,7 @@ export default function ExistingStationTicket() {
             <ScrollView style={[styles.screen, { backgroundColor: c.bg } ]} contentContainerStyle={styles.content}>
                 <Text style={[styles.title, { color: c.text } ]}>Report an issue</Text>
                 <Text style={[styles.subtitle, { color: c.subtext } ]}>
-                    Create a ticket for station #{ params.stationId}
+                    Create a ticket for station #{ stationId }
                 </Text>
 
             
@@ -353,4 +286,17 @@ const styles = StyleSheet.create({
 
     cancel: { alignItems: "center", paddingVertical: 10 },
     cancelText: { color: "#64748b", fontWeight: "800" },
+    fetchingBox: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: 'center',
+        gap: 12,
+        padding: 24,
+        transform: [{ translateY: -40 }],
+
+    },
+    fetchingText: {
+        fontSize: 16,
+        opacity: 0.8,
+    },
 });

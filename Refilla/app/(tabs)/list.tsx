@@ -11,7 +11,6 @@ import { meterstoMiles, haversineMeters, roundTo } from "../../hooks/distanceFro
 import { TabBarIcon } from "./_layout";
 
 import type { Station } from "../../types/station";
-import { Coords } from "../../types/location";
 import { useLiveLocation } from "../../src/context/userLocation";
 import { useNewMarkerLoc } from "../../src/context/newMarkerLocation";
 
@@ -24,27 +23,50 @@ function filterColor(status: string) {
 }
 
 
-export default function MapTab() {
+export default function ListTab() {
 
-  const stations = listStations();
-  console.log(stations);
-  
-  
+  // ================= user location =================
   const userLoc = useLiveLocation();
   if (userLoc.coords === null) {
     userLoc.coords = { latitude: 0, longitude: 0}
   } 
   const userLocation = userLoc.coords
- 
+  
+  // ================= stations =================
+  const stations = listStations();  
+  const activeStations = useMemo(() => { 
+     const active = stations.filter((s) => s.stationStatus === "ACTIVE")
+     
+     const coords = userLoc?.coords
+     if (!coords) return active;
+
+     const { latitude: uLat, longitude: uLng } = coords;
+
+     return [...active].sort((a, b) => {
+      const aLat = Number(a.lat);
+      const aLng = Number(a.lng);
+      const bLat = Number(b.lat);
+      const bLng = Number(b.lng);
+
+      const distA = haversineMeters(
+        { latitude: uLat, longitude: uLng },
+        { latitude: aLat, longitude: aLng }
+      );
+      const distB = haversineMeters(
+        { latitude: uLat, longitude: uLng },
+        { latitude: bLat, longitude: bLng }
+      );
+      return distA - distB
+    
+    });
+  },  [stations, userLoc]);
+
+  // ================= misc =================
   const c = useColors();
   const metric = usePrefs();
   const { setNewMarkerLoc } = useNewMarkerLoc();
 
 
-  const activeStations = useMemo(
-    () => stations.filter((s) => s.stationStatus === "ACTIVE"),
-    [stations]
-  );
 
   return (
     <View style={[styles.screen, { backgroundColor: c.bg }]}>

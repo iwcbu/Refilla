@@ -29,6 +29,7 @@ function softBg(hex: string) {
 
 export default function StationDetail() {
 
+  // ================= station =================
   const { id } = useLocalSearchParams<{ id: string }>();
   const station = getStation(Number(id));
   if (station === null) {
@@ -40,8 +41,8 @@ export default function StationDetail() {
     )
   }
 
+  // ================= misc =================
   const c = useColors();
-
   const fColor = filterColor(station.filterStatus);
   const sColor = statusColor(station.stationStatus);
 

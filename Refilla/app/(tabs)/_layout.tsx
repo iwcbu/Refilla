@@ -57,6 +57,14 @@ export default function TabsLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="gear" color={color} /> 
         }} 
       />
+      
+      <Tabs.Screen 
+        name="adminView" 
+        options={{ 
+          title: "Admin", 
+          tabBarIcon: ({ color }) => <TabBarIcon name="hdd-o" color={color} /> 
+        }} 
+      />
 
     </Tabs>
   );

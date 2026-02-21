@@ -1,12 +1,13 @@
 // src/db/database.ts
 
 import * as SQLite from "expo-sqlite";
+import { migrate } from "./migrations";
 
 export const db = SQLite.openDatabaseSync("refilla_v3.db");
 
-export function configureDb() {
-  db.execSync(`
-    PRAGMA foreign_keys = ON;
-    PRAGMA journal_mode = WAL;
-  `);
-}
+db.execSync(`
+  PRAGMA foreign_keys = ON;
+  PRAGMA journal_mode = WAL;
+`);
+
+migrate(db);

@@ -18,9 +18,13 @@ export type TicketRow = {
   updated_at: string;
 };
 
+export function listTickets(): TicketRow[] {
+  return db.getAllSync<TicketRow>(`SELECT * FROM tickets ORDER BY id;`);
+}
+
 export function listTicketsForStation(stationId: number): TicketRow[] {
   return db.getAllSync<TicketRow>(
-    `SELECT * FROM tickets WHERE station_id = ? ORDER BY id DESC;`,
+    `SELECT * FROM tickets WHERE station_id = ? ORDER BY id;`,
     [stationId]
   );
 }

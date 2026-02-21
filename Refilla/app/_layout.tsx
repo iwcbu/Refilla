@@ -8,8 +8,7 @@ import { useColors } from "../src/theme/colors";
 import { LocationProvider } from "../src/context/userLocation";
 import { NewMarkerLocProvider } from '../src/context/newMarkerLocation';
 
-import { configureDb } from "../src/db/database";
-import { migrate } from "../src/db/migrations";
+import "../src/db/database";
 
 const STORAGE_KEY = 'prefs';
 
@@ -21,10 +20,6 @@ export default function RootLayout() {
   const fade = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-
-    configureDb();
-    migrate();
-
     (async () => {
       const raw = await AsyncStorage.getItem(STORAGE_KEY);
       if (raw !== null) setPrefs({...DEFAULT_PREFS, ...JSON.parse(raw)});

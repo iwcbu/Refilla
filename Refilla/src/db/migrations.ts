@@ -1,8 +1,14 @@
 // src/db/migrations.ts
-import { db } from "./database";
+import type { SQLiteDatabase } from "expo-sqlite";
 
-export function migrate() {
+export function migrate(db: SQLiteDatabase) {
+
+  if (!db) {
+    throw new Error("migrate() called with undefined db");
+  }
+
   db.execSync(`
+
     CREATE TABLE IF NOT EXISTS stations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
 

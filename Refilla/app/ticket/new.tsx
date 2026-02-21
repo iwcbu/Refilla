@@ -9,7 +9,7 @@ import { MarkerLoc, useNewMarkerLoc } from "../../src/context/newMarkerLocation"
 import type { Station } from "../../types/station";
 import type { CreateStationPayload, CreateTicketPayload, TicketCategory, TicketPriority, } from "../../types/ticket";
 import { createStation } from "../../src/db/stationsRepo";
-
+import { createTicket, TicketRow } from "../../src/db/ticketsRepo";
 
 
 export default function NewTicket() {
@@ -89,8 +89,17 @@ export default function NewTicket() {
       ticket.stationId
 
       // TODO: call API: const createdTicket = await api.createTicket(ticket)
+      const ticketId = createTicket({
+        user_id: 1, 
+        station_id: id,
+        title: ticket.title,
+        body: ticket.description,
+        status: "OPEN",
+        category: ticket.category,
+        priority: ticket.priority,
+      });
 
-      Alert.alert("Submitted", "Your ticket has been created.");
+      Alert.alert(`Submitted", "Your ticket (#${ticketId}) has been created.`);
 
       if (id) {
         router.replace({ pathname: `/station/${id}`});

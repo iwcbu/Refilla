@@ -1,7 +1,7 @@
 // types/station.ts
 
 export type TicketPriority = "LOW" | "MEDIUM" | "HIGH";
-export type TicketCategory = "LEAK" | "BROKEN" | "FILTER" | "NEW LOCATION" | "OTHER";
+export type TicketCategory = "LEAK" | "BROKEN" | "FILTER" | "NEW" | "OTHER";
 
 
 

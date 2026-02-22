@@ -22,7 +22,7 @@ export default function NewTicket() {
   const [id, setId] = useState<number | null>(null)
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState<TicketCategory>("OTHER");
+  const [category, setCategory] = useState<TicketCategory>("NEW");
   const [priority, setPriority] = useState<TicketPriority>("MEDIUM");
   const [buildingAbre, setBuildingAbre] = useState("");
   const [buildingName, setBuildingName] = useState("");
@@ -192,7 +192,6 @@ export default function NewTicket() {
             />
           </View>
 
-        {/* Ticket form */}
         <View style={[styles.card, { backgroundColor: c.card2 }]}>
           <Text style={[styles.cardTitle, { color: c.text }]}>Ticket details</Text>
 
@@ -217,7 +216,6 @@ export default function NewTicket() {
 
         </View>
 
-        {/* Submit */}
         <Pressable onPress={submit} style={({ pressed }) => [styles.submit, pressed && styles.submitPressed]}>
           <Text style={styles.submitText}>Submit ticket</Text>
         </Pressable>

@@ -66,6 +66,16 @@ export default function RootLayout() {
                   headerBackTitle: "Back",
                 }}
                 />
+              <Stack.Screen 
+                name="ticket/[id]" 
+                options={{ 
+                  headerShown: true, 
+                  headerStyle: { backgroundColor: c.card2 },
+                  headerTintColor: c.text,
+                  title: "Ticket",
+                  headerBackTitle: "Cancel",
+                }}
+                />
               <Stack.Screen
                 name="ticket/new"
                 options={{

@@ -75,7 +75,7 @@ export default function ListTab() {
 
         <View style={styles.textBox}>
           <Text style={[styles.title, { color: c.text }]}>Refilla</Text>
-          <Text style={[styles.subtitle, { color: c.subtext }]}>Stations nearby (demo)</Text>
+          <Text style={[styles.subtitle, { color: c.subtext }]}>Stations nearby</Text>
         </View>
 
         <Pressable style={({ pressed }) => [

@@ -29,6 +29,13 @@ export function listTicketsForStation(stationId: number): TicketRow[] {
   );
 }
 
+export function getTicketById(id: number): TicketRow | null {
+  return (
+    db.getFirstSync<TicketRow>(`SELECT * FROM tickets WHERE id = ?;`, [id]) ??
+    null
+  );
+}
+
 export function createTicket(input: {
   user_id: number,
   station_id: number;

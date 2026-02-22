@@ -1,18 +1,30 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { 
     View,
     Text,
     Pressable,
     ScrollView,
     StyleSheet,
-    Switch
+    Switch,
+    RefreshControl
 } from 'react-native';
+import { router } from 'expo-router';
 
 import { useColors } from '../../src/theme/colors';
 import { usePrefs } from '../../src/context/prefs';
 import { FlatList } from 'react-native';
-import { listTickets } from '../../src/db/ticketsRepo';
+import { listTickets, TicketRow } from '../../src/db/ticketsRepo';
 import { timeAgo } from '../../hooks/timeAgo';
+import { TicketCard } from '../../components/TicketCard';
+import { TabBarIcon } from './_layout';
+
+// TEMPORARY
+import { db } from '../../src/db/database';
+import { migrate } from '../../src/db/migrations';
+import { Alert } from 'react-native';
+
+import { useEffect } from 'react';
+import { reload } from 'expo-router/build/global-state/routing';
 
 type PrefKey = 
     | 'dark'
@@ -23,73 +35,107 @@ type PrefKey =
 type Preferences = Record<PrefKey, boolean>;
 
 
-export default function Settings() {
+export default function TicketList() {
 
-    const c = useColors();
-    const { prefs, setPref } = usePrefs();
-    
-    const tickets = listTickets();
-    const openTickets = useMemo(
-        () => tickets.filter((t) => t.status == "OPEN")
-        ,[tickets]
-    );
+  const c = useColors();
 
-    return (
-        <View>
-            <FlatList
-                data={openTickets}
-                numColumns={2}
-                keyExtractor={(item) => String(item.id)}
-                contentContainerStyle={styles.grid}
-                columnWrapperStyle={styles.row}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => {
+  
 
+  const [refreshing, setRefreshing] = useState(false);
+  const [allTickets,  setAllTickets] = useState<TicketRow[]>(() => listTickets());
+  const [tickets,  setTickets] = useState<TicketRow[]>();
+
+  const openTickets = useMemo(
+    () => allTickets.filter((t) => t.status == "OPEN")
+    ,[allTickets]
+  );
+
+  const reload = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      setAllTickets(listTickets());
+    } finally {
+      setRefreshing(false)
+    }
+  }, []);
+
+
+
+  return (
+    <View style={[styles.screen, {backgroundColor: c.bg}]}>
         
-                    return (
-                    <Pressable
-                        onPress={() => {
-                        
-                        // router.push(`/station/${item.id}`);
-                        }}
-                        style={({ pressed }) => [
-                        styles.card,
-                        { backgroundColor: c.card2, borderColor: c.border2 },
-                        pressed && styles.cardPressed,
-                        ]}
-                    >
-                        <View style={styles.cardTop}>
-                        <Text style={[styles.abbrev, { color: c.text }]}>Ticket number: #{item.id} | Station: {item.station_id}</Text>
-        
-                        <View style={styles.badge}>
-                            <Text style={[styles.badgeText, { color: 'white' }]}>
-                            Submitted by: {item.user_id}
-                            </Text>
-                        </View>
-                        </View>
-        
-                        <Text style={[styles.buildingName, { color: c.subtext }]}>
-                        {item.body}
-                        </Text>
-        
-                        <View style={[styles.footer, { borderColor: c.border }]}>
-                        <Text style={[styles.meta, { color: c.subtext }]}>
-                            Updated: {timeAgo(item.updated_at)}
-                        </Text>
-                        </View>
-                    </Pressable>
-                    );
-                }}
-            />
-                
+      <View style={styles.header}>
+        <View style={styles.textBox}>
+          <Text style={[styles.title, { color: c.text }]}>Tickets</Text>
+          <Text style={[styles.subtitle, { color: c.subtext }]}>Recent tickets issued by users</Text>
         </View>
-    )
+        
+        <Pressable style={({ pressed }) => [
+                styles.ticket,
+                pressed && styles.ticketPressed,
+                ]}
+            onPress={() => {
+              try {
+                db.execSync(`
+                  DROP TABLE IF EXISTS tickets;
+                  DROP TABLE IF EXISTS stations;
+                `);
+
+                migrate(db);
+
+                Alert.alert("DB reset", "Dropped tables and re-ran migrations.");
+              } catch (e: any) {
+                Alert.alert("DB reset failed", String(e?.message ?? e));
+              }
+            }}>
+              <View style={{ width: 30, height: 30, display: 'flex', justifyContent:'center', alignItems:'center' }}>
+                <TabBarIcon name="remove" color="white" />
+              </View>
+              
+          </Pressable>
+      </View>
+
+      <FlatList
+          data={openTickets}
+          numColumns={2}
+          keyExtractor={(item) => String(item.id)}
+          contentContainerStyle={styles.grid}
+          columnWrapperStyle={styles.row}
+          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={reload}/>
+          }
+          
+          renderItem={({ item }) => {
+              return (
+                
+                <TicketCard 
+                  item={item}
+                  c={c}
+                  timeAgo={timeAgo}
+                  onPress={() => {
+                
+                  router.push(`/ticket/${item.id}`);
+                  }}
+                  style={({ pressed }) => [
+                  styles.card,
+                  { backgroundColor: c.card2, borderColor: c.border2 },
+                  pressed && styles.cardPressed,
+                  ]}
+                  />
+              );
+          }}
+      />
+            
+    </View>
+  )
 }
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
     padding: 16,
-    backgroundColor: "#f6f7fb",
+    // backgroundColor: "#f6f7fb",
   },
 
   header: {
@@ -121,7 +167,7 @@ const styles = StyleSheet.create({
     
     borderRadius: 140,
     padding: 12,
-    backgroundColor: "#77a0ff"
+    backgroundColor: "#ff7777"
 
   },
   ticketPressed: {

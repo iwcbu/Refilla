@@ -1,5 +1,33 @@
 import { usePrefs } from "../context/prefs";
 
+
+export type Colors = {
+    bg: string;
+    text: string;
+    subtext: string;
+    card: string;
+    card2: string;
+    border: string;
+    border2: string;
+    yes: string;
+    no: string;
+    ticketBubble: string;
+    bg2?: undefined;
+} | {
+    bg: string;
+    bg2: string;
+    card: string;
+    card2: string;
+    text: string;
+    subtext: string;
+    border: string;
+    border2: string;
+    yes: string;
+    no: string;
+    ticketBubble: string;
+}
+
+
 export function useColors() {
   const { prefs } = usePrefs();
   const dark = prefs.dark

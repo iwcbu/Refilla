@@ -1,3 +1,5 @@
+// app/(tabs)/adminView.tsx
+
 import { useMemo, useState, useCallback } from 'react';
 import { 
     View,
@@ -59,6 +61,48 @@ export default function TicketList() {
     }
   }, []);
 
+  if ( openTickets.length < 1) {
+    return (
+      <ScrollView style={[styles.screen, { backgroundColor: c.bg }]} 
+        refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={reload}/>
+          }  
+      >
+        <View style={styles.header}>
+        <View style={styles.textBox}>
+          <Text style={[styles.title, { color: c.text }]}>Tickets</Text>
+          <Text style={[styles.subtitle, { color: c.subtext }]}>Recent tickets issued by users</Text>
+        </View>
+        
+        <Pressable style={({ pressed }) => [
+                styles.ticket,
+                pressed && styles.ticketPressed,
+                ]}
+            onPress={() => {
+              try {
+                db.execSync(`
+                  DROP TABLE IF EXISTS tickets;
+                  DROP TABLE IF EXISTS stations;
+                `);
+
+                migrate(db);
+
+                Alert.alert("DB reset", "Dropped tables and re-ran migrations.");
+              } catch (e: any) {
+                Alert.alert("DB reset failed", String(e?.message ?? e));
+              }
+            }}>
+              <View style={{ width: 30, height: 30, display: 'flex', justifyContent:'center', alignItems:'center' }}>
+                <TabBarIcon name="remove" color="white" />
+              </View>
+              
+          </Pressable>
+          </View>
+      </ScrollView>
+
+    )
+  } 
+
 
 
   return (
@@ -116,7 +160,7 @@ export default function TicketList() {
                   timeAgo={timeAgo}
                   onPress={() => {
                 
-                  router.push(`/ticket/${item.id}`);
+                  router.push(`/ticket/review/${item.id}`);
                   }}
                   style={({ pressed }) => [
                   styles.card,

@@ -1,3 +1,5 @@
+// src/context/prefs.tsx
+
 import { createContext, useContext } from "react";
 
 export type Prefs = {

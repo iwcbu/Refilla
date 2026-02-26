@@ -1,3 +1,4 @@
+// hooks/timeAgo.ts
 
 export function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();

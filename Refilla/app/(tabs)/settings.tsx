@@ -1,3 +1,5 @@
+// app/(tabs)/settings.tsx
+
 import { useMemo, useState } from 'react';
 import { 
     View,

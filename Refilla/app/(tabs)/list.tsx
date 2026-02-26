@@ -1,3 +1,5 @@
+// app/(tabs)/list.tsx
+
 import { StyleSheet, View, Text, FlatList, Pressable } from "react-native";
 import { useMemo, useState } from "react";
 import { router } from "expo-router";

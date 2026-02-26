@@ -1,3 +1,5 @@
+// src/context/theme.tsx
+
 import { createContext, useContext } from "react";
 
 type ThemeCtx = {

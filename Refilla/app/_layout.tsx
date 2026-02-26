@@ -1,3 +1,5 @@
+// app/_layout.tsx
+
 import { Stack } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Animated } from 'react-native';
@@ -67,7 +69,7 @@ export default function RootLayout() {
                 }}
                 />
               <Stack.Screen 
-                name="ticket/[id]" 
+                name="ticket/review/[id]" 
                 options={{ 
                   headerShown: true, 
                   headerStyle: { backgroundColor: c.card2 },

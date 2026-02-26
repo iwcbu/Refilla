@@ -1,21 +1,28 @@
+// app/ticket/[id].tsx
+
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ScrollView, Text, View, StyleSheet, TextInput, Alert, Pressable, } from "react-native";
+import { ScrollView, Text, View, StyleSheet, Alert, Pressable, } from "react-native";
 
 import { Stack } from "expo-router";
-import { db } from "../../src/db/database";
-import { getTicketById, updateTicket, deleteTicket, TicketRow } from "../../src/db/ticketsRepo";
-import { Picker } from "@react-native-picker/picker";
-import { useColors } from "../../src/theme/colors";
+import { getTicketById, updateTicket, deleteTicket, TicketRow } from "../../../src/db/ticketsRepo";
+import MapView, { Marker } from "react-native-maps";
+
+import { useColors } from "../../../src/theme/colors";
+import { useNewMarkerLoc } from "../../../src/context/newMarkerLocation";
+import { getStation, StationRow, updateStation } from "../../../src/db/stationsRepo";
+import StationDetail from '../../station/[id]';
 
 export default function TicketDetailScreen() {
 
     const c = useColors();
     const { id } = useLocalSearchParams();
     const router = useRouter();
-    const ticketId = Number(id);
 
+    const ticketId = Number(id);
     const [ticket, setTicket] = useState<TicketRow | null>(null);
+    const [station, setStation] = useState<StationRow | null>(null);
+
     const [status, setStatus] = useState("OPEN");
     const [priority, setPriority] = useState("MEDIUM");
     const [body, setBody] = useState("");
@@ -24,18 +31,17 @@ export default function TicketDetailScreen() {
     useEffect(() => {
         const t = getTicketById(ticketId);
         if (t) {
-        setTicket(t);
-        setStatus(t.status);
-        setBody(t.body ?? "");
+            setTicket(t);
+            setStatus(t.status);
+            setBody(t.body ?? "");
+            const st = getStation(t.station_id);
+            if (st) {
+                setStation(st);
+            }
         }
         setLoading(false);
     }, [ticketId]);
 
-    const handleSave = () => {
-        updateTicket(ticketId, { status, body });
-        Alert.alert("Saved", "Ticket updated.");
-        router.back();
-    };
 
     const handleDelete = () => {
         Alert.alert("Delete Ticket", "Are you sure?", [
@@ -45,10 +51,18 @@ export default function TicketDetailScreen() {
             style: "destructive",
             onPress: () => {
             deleteTicket(ticketId);
-            router.replace("/tickets");
+            router.replace("/tickets/review");
             },
         },
         ]);
+    };
+
+    const handleApprove = () => {
+        if (station) {
+            updateStation(station.id, {"stationStatus": "ACTIVE"})
+            Alert.alert("Approved", "Station has now been added");
+        }
+        router.back();
     };
 
     if (loading || !ticket) {
@@ -68,7 +82,7 @@ export default function TicketDetailScreen() {
             }}
       />
         <View style={{ padding: 30, backgroundColor: c.bg, flex: 1 }}>
-            <ScrollView contentContainerStyle={[styles.container, { backgroundColor: c.card2, borderColor: c.border2 }]}>
+            <ScrollView contentContainerStyle={[styles.container, { backgroundColor: c.card2, borderColor: c.border2 }]} showsVerticalScrollIndicator={false}>
                 <Text style={[styles.label, { color: c.text } ]}>Ticket #{ticket.id}</Text>
                 <Text style={[styles.meta, { color: c.subtext } ]}>Station ID: {ticket.station_id}</Text>
                 <Text style={[styles.meta, { color: c.subtext } ]}>Submitted by: user{ticket.user_id}</Text>
@@ -112,17 +126,14 @@ export default function TicketDetailScreen() {
                     </View>
 
                 <Text style={[styles.label, { color: c.text } ]}>Body</Text>
-                <TextInput
-                    value={body}
-                    onChangeText={setBody}
-                    style={styles.input}
-                    multiline
-                    numberOfLines={6}
-                    textAlignVertical="top"
-                />
+                <Text style={{ color: c.subtext }}>{ body }</Text>
+
+                <Text style={[styles.label, { color: c.text } ]}>Preview</Text>
+
+                <StationDetail />
 
                 <View style={styles.actions}>
-                    <Pressable style={styles.approveButton} onPress={handleSave}>
+                    <Pressable style={styles.approveButton} onPress={handleApprove}>
                     <Text style={styles.approveText}>Approve</Text>
                     </Pressable>
                     <Pressable style={styles.declineButton} onPress={handleDelete}>
@@ -219,5 +230,18 @@ export default function TicketDetailScreen() {
     pillSmallActive: { backgroundColor: "#344e8b", borderColor: "#344e8b" },
     pillSmallText: { fontSize: 12, fontWeight: "900", color: "#131d34" },
     pillSmallTextActive: { color: "#ffffff" },
+
+    mapWrap: {
+    marginTop: 14,
+    borderRadius: 16,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  map: {
+    width: "100%",
+    height: 220,
+    alignSelf: "center",
+  },
 
 });

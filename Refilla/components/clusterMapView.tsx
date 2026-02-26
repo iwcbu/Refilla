@@ -1,3 +1,5 @@
+// components/clusterMapView.tsx
+
 import { Image, Text, View, StyleSheet } from 'react-native';
 import { useState, useMemo, useRef } from 'react';
 import { router } from 'expo-router';

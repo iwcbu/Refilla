@@ -1,4 +1,5 @@
 // src/db/migrations.ts
+
 import type { SQLiteDatabase } from "expo-sqlite";
 
 export function migrate(db: SQLiteDatabase) {

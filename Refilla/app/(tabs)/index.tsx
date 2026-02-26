@@ -1,4 +1,5 @@
-import { Station } from '../../types/station';
+// app/(tabs)/index.tsx
+
 import { Pressable, StyleSheet, View, Text } from 'react-native';
 import { useEffect, useState, useRef, useMemo } from 'react';
 

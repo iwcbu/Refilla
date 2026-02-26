@@ -1,3 +1,5 @@
+// src/theme/colors.ts
+
 import { usePrefs } from "../context/prefs";
 
 

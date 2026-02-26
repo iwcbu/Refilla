@@ -1,3 +1,5 @@
+// components/animatedClusterBubble.tsx
+
 import { Animated, StyleSheet } from "react-native";
 import { Text } from "react-native";
 import { useEffect, useRef } from "react";

@@ -1,3 +1,5 @@
+// app/ticket/existing.tsx
+
 import { useEffect, useMemo, useState } from "react";
 import { router, useLocalSearchParams, Stack } from "expo-router";
 import { StyleSheet, View, Text, TextInput, Pressable, ScrollView, Alert } from "react-native";

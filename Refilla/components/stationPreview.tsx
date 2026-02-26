@@ -1,14 +1,14 @@
-// app/station/[id].tsx
+// app/station/preview.tsx
 
 import { ActivityIndicator, StyleSheet, View, Text, Pressable } from "react-native";
 import MapView, { Marker } from 'react-native-maps';
 import { useLocalSearchParams, Stack, router } from "expo-router";;
 
-import { useColors } from "../../src/theme/colors";
-import { TabBarIcon } from "../(tabs)/_layout";
+import { useColors } from "../src/theme/colors";
+import { TabBarIcon } from "../app/(tabs)/_layout";
 
 
-import { getStation } from "../../src/db/stationsRepo";
+import { getStation } from "../src/db/stationsRepo";
 
 
 function filterColor(status: string) {
@@ -29,7 +29,7 @@ function softBg(hex: string) {
   return "#fee2e2";
 }
 
-export default function StationDetail() {
+export default function StationPreview() {
 
   // ================= station =================
   const { id } = useLocalSearchParams<{ id: string }>();

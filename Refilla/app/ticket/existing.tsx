@@ -44,39 +44,36 @@ export default function ExistingStationTicket() {
         return null;
     }
 
+    const [submitting, setSubmitting] = useState(false);
+
     async function submit() {
         const err = validate();
         if (err) {
-        Alert.alert("Missing info", err);
-        return;
+            Alert.alert("Missing info", err);
+            return;
         }
 
-        // Build payloads
-        const ticket: CreateTicketPayload = {
-        title: title.trim(),
-        description: description.trim(),
-        category,
-        priority,
+        if (submitting) return;
+        setSubmitting(true);
+
+        const ticket = {
+            user_id: 1,
+            station_id: Number(stationId),
+            title: title.trim(),
+            body: description.trim() || null,
+            status: 'OPEN',
+            category,
+            priority,
         };
 
-
         try {
-
-            ticket.stationId = stationId;
-
-            // TODO: call API: const createdTicket = await api.createTicket(ticket)
-
-            // const id = createTicket();
-            
+            createTicket(ticket)
             Alert.alert("Submitted", "Your ticket has been created.");
-
-            if (stationId) {
-                router.replace({ pathname: `/station/${stationId}`, params: { id: stationId } });
-            } else {
-                router.back();
-            }
+            router.back();
         } catch (e) {
-        Alert.alert("Error", "Could not submit ticket. Please try again.");
+            Alert.alert("Error", "Could not submit ticket. Please try again.");
+        } finally {
+            setSubmitting(false)
         }
     }
 
@@ -123,7 +120,7 @@ export default function ExistingStationTicket() {
 
                     <Text style={styles.label}>Category</Text>
                     <View style={styles.pills}>
-                    {([ "STATION DETAILS", "LEAK", "BROKEN", "FILTER", "OTHER" ] as TicketCategory[]).map((cat) => {
+                    {([ "STATION DETAILS", "LEAK", "BROKEN", "FILTER", "REMOVE", "OTHER" ] as TicketCategory[]).map((cat) => {
                         const active = cat === category;
                         return (
                         <Pressable

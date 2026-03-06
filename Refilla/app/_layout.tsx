@@ -69,7 +69,17 @@ export default function RootLayout() {
                 }}
                 />
               <Stack.Screen 
-                name="ticket/review/[id]" 
+                name="ticket/review/delete/[id]" 
+                options={{ 
+                  headerShown: true, 
+                  headerStyle: { backgroundColor: c.card2 },
+                  headerTintColor: c.text,
+                  title: "Ticket",
+                  headerBackTitle: "Cancel",
+                }}
+                />
+              <Stack.Screen 
+                name="ticket/review/details/[id]" 
                 options={{ 
                   headerShown: true, 
                   headerStyle: { backgroundColor: c.card2 },
@@ -98,6 +108,7 @@ export default function RootLayout() {
                   headerBackTitle: "Back",
                 }}
                 />
+                
             </Stack>
           </Animated.View>
         </PrefsContext.Provider>

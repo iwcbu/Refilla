@@ -6,7 +6,6 @@ export type Prefs = {
   dark: boolean;
   metric: boolean;
   pushNotifications: boolean;
-  showCallouts: boolean;
 };
 
 type PrefsCtx = {
@@ -18,7 +17,6 @@ export const DEFAULT_PREFS: Prefs = {
   dark: false,
   metric: false,
   pushNotifications: false,
-  showCallouts: true,
 };
 
 const PrefsContext = createContext<PrefsCtx>({

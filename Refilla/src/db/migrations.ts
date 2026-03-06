@@ -3,7 +3,7 @@
 import type { SQLiteDatabase } from "expo-sqlite";
 
 export function migrate(db: SQLiteDatabase) {
-
+  
   if (!db) {
     throw new Error("migrate() called with undefined db");
   }

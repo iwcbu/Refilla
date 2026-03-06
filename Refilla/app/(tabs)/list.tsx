@@ -1,8 +1,8 @@
 // app/(tabs)/list.tsx
 
-import { StyleSheet, View, Text, FlatList, Pressable } from "react-native";
-import { useMemo, useState } from "react";
-import { router } from "expo-router";
+import { StyleSheet, View, Text, FlatList, Pressable, LayoutAnimation, Animated, Easing, RefreshControl, ActivityIndicator} from "react-native";
+import { useMemo, useState, useRef, useEffect, useCallback } from "react";
+import { router, useFocusEffect } from "expo-router";
 
 import { usePrefs } from "../../src/context/prefs";
 import { useColors } from "../../src/theme/colors";
@@ -12,11 +12,11 @@ import { meterstoMiles, haversineMeters, roundTo } from "../../hooks/distanceFro
 
 import { TabBarIcon } from "./_layout";
 
-import type { Station } from "../../types/station";
 import { useLiveLocation } from "../../src/context/userLocation";
 import { useNewMarkerLoc } from "../../src/context/newMarkerLocation";
 
-import { createStation, listStations, deleteStation } from "../../src/db/stationsRepo";
+import { listStations, StationRow } from '../../src/db/stationsRepo';
+import { Ionicons } from '@expo/vector-icons';
 
 function filterColor(status: string) {
   if (status === "GREEN") return "#16a34a";
@@ -29,13 +29,11 @@ export default function ListTab() {
 
   // ================= user location =================
   const userLoc = useLiveLocation();
-  if (userLoc.coords === null) {
-    userLoc.coords = { latitude: 0, longitude: 0}
-  } 
-  const userLocation = userLoc.coords
+  const userLocation = userLoc.coords ?? { latitude: 0, longitude: 0 }
   
   // ================= stations =================
-  const stations = listStations();  
+  const [stations, setStations] = useState<StationRow[]>(() => listStations());
+  
   const activeStations = useMemo(() => { 
      const active = stations.filter((s) => s.stationStatus === "ACTIVE")
      
@@ -61,23 +59,72 @@ export default function ListTab() {
       return distA - distB
     
     });
-  },  [stations, userLoc]);
+  },  [stations, userLoc.coords]);
 
+
+
+  const [includeAll, setIncludeAll] = useState(false);
+
+  const stationsDisplayed = useMemo(
+    () => includeAll ? listStations() : activeStations
+    , [includeAll, activeStations, stations]
+  )
+
+
+  // ================= refresh =================
+  const [refreshing, setRefreshing] = useState(false);
+  
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+
+    const start = Date.now();
+
+    try {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setStations(listStations());
+    } finally {
+      const elapsed = Date.now() - start;
+      const remaining = 1000 - elapsed;
+
+      if (remaining > 0) {
+        setTimeout(() => setRefreshing(false), remaining);
+      } else {
+        setRefreshing(false);
+      }
+    }
+  }, []);
+
+  useFocusEffect(useCallback(() => handleRefresh(), [handleRefresh]));
+  
+  
+  
   // ================= misc =================
   const c = useColors();
   const metric = usePrefs();
   const { setNewMarkerLoc } = useNewMarkerLoc();
-
-
-
+  
+  
+  
   return (
     <View style={[styles.screen, { backgroundColor: c.bg }]}>
 
       <View style={styles.header}>
 
         <View style={styles.textBox}>
-          <Text style={[styles.title, { color: c.text }]}>Refilla</Text>
-          <Text style={[styles.subtitle, { color: c.subtext }]}>Stations nearby</Text>
+          { refreshing
+              ? <Text style={[styles.title, { color: c.text }]}>Refilla <ActivityIndicator size={"small"} /></Text> 
+              : <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 5, }}>
+                  <Text style={[styles.title, { color: c.text }]}>Refilla</Text>
+                  <Pressable onPress={handleRefresh}><Ionicons name="refresh" size={20} /></Pressable>
+                </View>
+          }
+          <View style={{display: "flex", flexDirection: "row" }}>
+            {
+              refreshing 
+              ?<Text style={[styles.subtitle, { color: c.subtext }]}>Refreshing...</Text>
+              :<Text style={[styles.subtitle, { color: c.subtext }]}>Stations nearby</Text>
+            }
+          </View>
         </View>
 
         <Pressable style={({ pressed }) => [
@@ -94,8 +141,26 @@ export default function ListTab() {
         </Pressable>
       </View>
 
+      <View style={{ flexDirection: "row", gap: 10, marginTop: 5, marginBottom: 20, }}>
+
+        <Pressable onPress={() => setIncludeAll(false)}>
+          <Text style={{ color: !includeAll ? c.text : c.subtext }}>
+            Active Stations
+          </Text>
+          {!includeAll && <View style={{ height: 2, backgroundColor: c.text }} />}
+        </Pressable>
+        
+        <Pressable onPress={() => setIncludeAll(true)}>
+          <Text style={{ color: includeAll ? c.text : c.subtext }}>
+            All Stations
+          </Text>
+          {includeAll && <View style={{ height: 2, backgroundColor: c.text }} />}
+        </Pressable>
+
+      </View>
+
       <FlatList
-        data={activeStations}
+        data={stationsDisplayed}
         numColumns={2}
         keyExtractor={(item) => String(item.id)}
         contentContainerStyle={styles.grid}

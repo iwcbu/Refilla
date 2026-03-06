@@ -6,15 +6,16 @@ import {
     Text,
     Pressable,
     ScrollView,
+    FlatList,
     StyleSheet,
-    Switch,
-    RefreshControl
+    ActivityIndicator,
+    LayoutAnimation,
+    Alert
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 
 import { useColors } from '../../src/theme/colors';
 import { usePrefs } from '../../src/context/prefs';
-import { FlatList } from 'react-native';
 import { listTickets, TicketRow } from '../../src/db/ticketsRepo';
 import { timeAgo } from '../../hooks/timeAgo';
 import { TicketCard } from '../../components/TicketCard';
@@ -23,18 +24,8 @@ import { TabBarIcon } from './_layout';
 // TEMPORARY
 import { db } from '../../src/db/database';
 import { migrate } from '../../src/db/migrations';
-import { Alert } from 'react-native';
 
-import { useEffect } from 'react';
-import { reload } from 'expo-router/build/global-state/routing';
-
-type PrefKey = 
-    | 'dark'
-    | 'metric'
-    | 'pushNotifications'
-    | 'showCallouts'
-
-type Preferences = Record<PrefKey, boolean>;
+import { Ionicons } from '@expo/vector-icons';
 
 
 export default function TicketList() {
@@ -43,65 +34,46 @@ export default function TicketList() {
 
   
 
-  const [refreshing, setRefreshing] = useState(false);
-  const [allTickets,  setAllTickets] = useState<TicketRow[]>(() => listTickets());
-  const [tickets,  setTickets] = useState<TicketRow[]>();
+  const [ticketList, setTicketList] = useState<TicketRow[]>(() => listTickets());
+  const [includeAll, setIncludeAll] = useState(false);
 
   const openTickets = useMemo(
-    () => allTickets.filter((t) => t.status == "OPEN")
-    ,[allTickets]
+    () => ticketList.filter((t) => t.status != "CLOSED")
+    ,[ticketList]
   );
+  
+  const ticketsDisplayed = useMemo(
+    () => includeAll ? ticketList : openTickets 
+    ,[includeAll, openTickets, ticketList]
+  )
 
-  const reload = useCallback(async () => {
+
+  // ================= refresh =================
+  const [refreshing, setRefreshing] = useState(false);
+    
+  const handleRefresh = useCallback(() => {
+
+    
     setRefreshing(true);
+
+    const start = Date.now();
+
     try {
-      setAllTickets(listTickets());
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setTicketList([...listTickets()]);
     } finally {
-      setRefreshing(false)
+      const elapsed = Date.now() - start;
+      const remaining = 1000 - elapsed;
+
+      if (remaining > 0) {
+        setTimeout(() => setRefreshing(false), remaining);
+      } else {
+        setRefreshing(false);
+      }
     }
   }, []);
 
-  if ( openTickets.length < 1) {
-    return (
-      <ScrollView style={[styles.screen, { backgroundColor: c.bg }]} 
-        refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={reload}/>
-          }  
-      >
-        <View style={styles.header}>
-        <View style={styles.textBox}>
-          <Text style={[styles.title, { color: c.text }]}>Tickets</Text>
-          <Text style={[styles.subtitle, { color: c.subtext }]}>Recent tickets issued by users</Text>
-        </View>
-        
-        <Pressable style={({ pressed }) => [
-                styles.ticket,
-                pressed && styles.ticketPressed,
-                ]}
-            onPress={() => {
-              try {
-                db.execSync(`
-                  DROP TABLE IF EXISTS tickets;
-                  DROP TABLE IF EXISTS stations;
-                `);
-
-                migrate(db);
-
-                Alert.alert("DB reset", "Dropped tables and re-ran migrations.");
-              } catch (e: any) {
-                Alert.alert("DB reset failed", String(e?.message ?? e));
-              }
-            }}>
-              <View style={{ width: 30, height: 30, display: 'flex', justifyContent:'center', alignItems:'center' }}>
-                <TabBarIcon name="remove" color="white" />
-              </View>
-              
-          </Pressable>
-          </View>
-      </ScrollView>
-
-    )
-  } 
+  useFocusEffect(useCallback(() => handleRefresh(), [handleRefresh]));
 
 
 
@@ -109,10 +81,21 @@ export default function TicketList() {
     <View style={[styles.screen, {backgroundColor: c.bg}]}>
         
       <View style={styles.header}>
-        <View style={styles.textBox}>
-          <Text style={[styles.title, { color: c.text }]}>Tickets</Text>
-          <Text style={[styles.subtitle, { color: c.subtext }]}>Recent tickets issued by users</Text>
-        </View>
+          { refreshing
+            ? <View style={styles.textBox}>
+                  <Text style={[styles.title, { color: c.text }]}>Tickets <ActivityIndicator size={"small"} /></Text> 
+                  <Text style={[styles.subtitle, { color: c.subtext }]}>Refreshing tickets...</Text>
+
+              </View>
+            : <View style={styles.textBox}>
+                <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 5, }}>
+                    <Text style={[styles.title, { color: c.text }]}>Tickets</Text>
+                    <Pressable onPress={handleRefresh}><Ionicons name="refresh" size={20} /></Pressable>
+                </View>
+                <Text style={[styles.subtitle, { color: c.subtext }]}>Recent tickets issued by users</Text>                  
+
+              </View>
+          }
         
         <Pressable style={({ pressed }) => [
                 styles.ticket,
@@ -137,19 +120,36 @@ export default function TicketList() {
               </View>
               
           </Pressable>
+
+      </View>
+      <View style={{ flexDirection: "row", gap: 10, marginTop: 5, marginBottom: 20, }}>
+
+        <Pressable onPress={() => setIncludeAll(false)}>
+          <Text style={{ color: !includeAll ? c.text : c.subtext }}>
+            Open Tickets
+          </Text>
+          {!includeAll && <View style={{ height: 2, backgroundColor: c.text }} />}
+        </Pressable>
+        
+        <Pressable onPress={() => setIncludeAll(true)}>
+          <Text style={{ color: includeAll ? c.text : c.subtext }}>
+            All Tickets
+          </Text>
+          {includeAll && <View style={{ height: 2, backgroundColor: c.text }} />}
+        </Pressable>
+        
       </View>
 
+
       <FlatList
-          data={openTickets}
+          data={ticketsDisplayed}
           numColumns={2}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.grid}
           columnWrapperStyle={styles.row}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
           showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={reload}/>
-          }
+          
           
           renderItem={({ item }) => {
               return (
@@ -159,8 +159,10 @@ export default function TicketList() {
                   c={c}
                   timeAgo={timeAgo}
                   onPress={() => {
+                    (item.category == "REMOVE") 
+                      ? router.push(`/ticket/review/delete/${item.id}`)
+                      : router.push(`/ticket/review/details/${item.id}`)
                 
-                  router.push(`/ticket/review/${item.id}`);
                   }}
                   style={({ pressed }) => [
                   styles.card,
@@ -171,7 +173,7 @@ export default function TicketList() {
               );
           }}
       />
-            
+              
     </View>
   )
 }
@@ -228,6 +230,8 @@ const styles = StyleSheet.create({
   },
 
   card: {
+    flex: 1,
+
     width: 165,
     marginTop: 14,
     padding: 14,

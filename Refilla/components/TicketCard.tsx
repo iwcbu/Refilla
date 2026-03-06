@@ -71,6 +71,7 @@ export function TicketCard({
 
 const styles = StyleSheet.create({
   card: {
+    width: 165,
     borderWidth: 1,
     borderRadius: 16,
     padding: 14,
@@ -122,13 +123,16 @@ const styles = StyleSheet.create({
 
   chipsRow: {
     flexDirection: "row",
+    justifyContent:'center',
     gap: 8,
     flexWrap: "wrap",
   },
   chip: {
     borderWidth: 1,
     borderRadius: 999,
-    paddingHorizontal: 10,
+
+    textAlign:'center',
+    paddingHorizontal: 8,
     paddingVertical: 4,
     fontSize: 12,
     fontWeight: "700",

@@ -65,14 +65,14 @@ export function updateTicket(
   id: number,
   patch: Partial<Pick<TicketRow, "title" | "body" | "status" | "category" | "priority">>
 ) {
-  db.runSync(
+  const res = db.runSync(
     `UPDATE tickets SET
       title = COALESCE(?, title),
       body = COALESCE(?, body),
       status = COALESCE(?, status),
       category = COALESCE(?, category),
-      priority = COALESCE(?, priority)
-      updated_at = datetime('now'),
+      priority = COALESCE(?, priority),
+      updated_at = datetime('now')
      WHERE id = ?;`,
     [
       patch.title ?? null, 
@@ -83,6 +83,8 @@ export function updateTicket(
       id
     ]
   );
+  return res.changes
+
 }
 
 export function deleteTicket(id: number) {

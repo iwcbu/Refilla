@@ -7,8 +7,7 @@ import { useLocalSearchParams, Stack, router } from "expo-router";;
 import { useColors } from "../src/theme/colors";
 import { TabBarIcon } from "../app/(tabs)/_layout";
 
-
-import { getStation } from "../src/db/stationsRepo";
+import { getStation, StationRow } from "../src/db/stationsRepo";
 
 
 function filterColor(status: string) {
@@ -29,11 +28,15 @@ function softBg(hex: string) {
   return "#fee2e2";
 }
 
-export default function StationPreview() {
+
+type SpProps = {
+    station: StationRow | null;
+}
+
+export default function StationPreview( { station }: SpProps) {
 
   // ================= station =================
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const station = getStation(Number(id));
+
   if (station === null) {
     return (
       <View style={styles.fetchingBox}>
@@ -81,12 +84,7 @@ export default function StationPreview() {
               style={({ pressed }) => [
                 pressed && styles.ticketPressed,
               ]}
-              onPress={() => {
-                router.push({ 
-                  pathname: `/ticket/existing`,
-                  params: { stationId: station.id}
-                })
-              }}>
+              >
                 <View style={{ width: 30, height: 30, display: 'flex', justifyContent:'center', alignItems:'center' }}>
                   <TabBarIcon name="gear" color={ c.no == '#000000' ? '#969696' : c.no } />
                 </View>

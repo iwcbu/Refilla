@@ -18,6 +18,12 @@ import { useNewMarkerLoc } from "../../src/context/newMarkerLocation";
 import { listStations, StationRow } from '../../src/db/stationsRepo';
 import { Ionicons } from '@expo/vector-icons';
 
+import ThemedBg from "../../components/ThemedBg";
+import ThemedBg2 from "../../components/ThemedBg";
+import ThemedCard2 from "../../components/ThemedCard2";
+import ThemedText from "../../components/ThemedText";
+import ThemedSubtext from "../../components/ThemedSubtext";
+
 function filterColor(status: string) {
   if (status === "GREEN") return "#16a34a";
   if (status === "YELLOW") return "#f59e0b";
@@ -103,61 +109,71 @@ export default function ListTab() {
   const metric = usePrefs();
   const { setNewMarkerLoc } = useNewMarkerLoc();
   
-  
-  
   return (
-    <View style={[styles.screen, { backgroundColor: c.bg }]}>
-
+    <ThemedBg style={styles.screen}>
       <View style={styles.header}>
-
         <View style={styles.textBox}>
-          { refreshing
-              ? <Text style={[styles.title, { color: c.text }]}>Refilla <ActivityIndicator size={"small"} /></Text> 
-              : <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 5, }}>
-                  <Text style={[styles.title, { color: c.text }]}>Refilla</Text>
-                  <Pressable onPress={handleRefresh}><Ionicons name="refresh" size={20} /></Pressable>
-                </View>
+          {
+          refreshing 
+              ? (
+              <View style={styles.titleBox}>
+                <ThemedText style={styles.title}>Refilla</ThemedText>
+                <ActivityIndicator size={"small"} />
+              </View>
+              
+            ) : (
+              <View style={styles.titleBox}>
+                <ThemedText style={styles.title}>Refilla</ThemedText>
+                <Pressable onPress={handleRefresh}>
+                  <Ionicons name="refresh" size={20} color={c.text} />
+                </Pressable>
+              </View>
+            )
           }
-          <View style={{display: "flex", flexDirection: "row" }}>
+
+          <View style={{ display: "flex", flexDirection: "row" }}>
             {
-              refreshing 
-              ?<Text style={[styles.subtitle, { color: c.subtext }]}>Refreshing...</Text>
-              :<Text style={[styles.subtitle, { color: c.subtext }]}>Stations nearby</Text>
+            refreshing 
+                ? (
+                <ThemedSubtext style={styles.subtitle}>Refreshing...</ThemedSubtext>
+              ) : (
+                <ThemedSubtext style={styles.subtitle}>Stations nearby</ThemedSubtext>
+              )
             }
           </View>
         </View>
 
-        <Pressable style={({ pressed }) => [
-                styles.ticket,
-                pressed && styles.ticketPressed,
-              ]}
+        <Pressable
+          style={({ pressed }) => [styles.ticket, pressed && styles.ticketPressed]}
           onPress={() => {
-            setNewMarkerLoc({ latitude: userLocation.latitude, longitude: userLocation.longitude })
-            router.push(`/ticket/new`)
-          }}>
-            <View style={{ width: 30, height: 30, display: 'flex', justifyContent:'center', alignItems:'center' }}>
-              <TabBarIcon name="plus" color="white" />
-            </View>
+            setNewMarkerLoc({
+              latitude: userLocation.latitude,
+              longitude: userLocation.longitude,
+            });
+            router.push(`/ticket/new`);
+          }}
+        >
+          <View style={styles.iconBox}>
+            <TabBarIcon name="plus" color="white" />
+          </View>
         </Pressable>
       </View>
 
-      <View style={{ flexDirection: "row", gap: 10, marginTop: 5, marginBottom: 20, }}>
-
+      <ThemedBg2 style={styles.toggleWrap}>
         <Pressable onPress={() => setIncludeAll(false)}>
-          <Text style={{ color: !includeAll ? c.text : c.subtext }}>
+          <ThemedText style={{ color: !includeAll ? c.text : c.subtext }}>
             Active Stations
-          </Text>
+          </ThemedText>
           {!includeAll && <View style={{ height: 2, backgroundColor: c.text }} />}
         </Pressable>
-        
+
         <Pressable onPress={() => setIncludeAll(true)}>
-          <Text style={{ color: includeAll ? c.text : c.subtext }}>
+          <ThemedText style={{ color: includeAll ? c.text : c.subtext }}>
             All Stations
-          </Text>
+          </ThemedText>
           {includeAll && <View style={{ height: 2, backgroundColor: c.text }} />}
         </Pressable>
-
-      </View>
+      </ThemedBg2>
 
       <FlatList
         data={stationsDisplayed}
@@ -172,73 +188,83 @@ export default function ListTab() {
           return (
             <Pressable
               onPress={() => {
-                
                 router.push(`/station/${item.id}`);
               }}
-              style={({ pressed }) => [
-                styles.card,
-                { backgroundColor: c.card2, borderColor: c.border2 },
-                pressed && styles.cardPressed,
-              ]}
+              style={({ pressed }) => [pressed && styles.cardPressed]}
             >
-              <View style={styles.cardTop}>
-                <Text style={[styles.abbrev, { color: c.text }]}>{item.buildingAbre}</Text>
+              <ThemedCard2 style={styles.card}>
+                <View style={styles.cardTop}>
+                  <ThemedText style={styles.abbrev}>{item.buildingAbre}</ThemedText>
 
-                <View style={[styles.badge, { borderColor: 'white', backgroundColor: fc }]}>
-                  <Text style={[styles.badgeText, { color: 'white' }]}>
-                    {item.filterStatus}
-                  </Text>
+                  <View style={[styles.badge, { borderColor: "white", backgroundColor: fc }]}>
+                    <Text style={[styles.badgeText, { color: "white" }]}>{item.filterStatus}</Text>
+                  </View>
                 </View>
-              </View>
 
-              <Text style={[styles.buildingName, { color: c.subtext }]}>
-                {item.buildingName}
-              </Text>
-              <Text style={[styles.buildingName, { color: c.subtext }]}>
+                <ThemedSubtext style={styles.buildingName}>
+                  {item.buildingName}
+                </ThemedSubtext>
 
-                {/* this is a disgusting one liner I'm sorry to who is reading this */}
-                {metric.prefs.metric 
-                  ? roundTo((haversineMeters( {latitude: item.lat, longitude: item.lng}, { latitude: userLocation.latitude, longitude: userLocation.longitude })) / 100, 2) + " km"
-                  : roundTo(meterstoMiles(haversineMeters( {latitude: item.lat, longitude: item.lng}, { latitude: userLocation.latitude, longitude: userLocation.longitude })), 2) + " mi" }
-              </Text>
+                <ThemedSubtext style={styles.buildingName}>
+                  {metric.prefs.metric
+                    ? roundTo(
+                        haversineMeters(
+                          { latitude: item.lat, longitude: item.lng },
+                          {
+                            latitude: userLocation.latitude,
+                            longitude: userLocation.longitude,
+                          }
+                        ) / 1000,
+                        2
+                      ) + " km"
+                    : roundTo(
+                        meterstoMiles(
+                          haversineMeters(
+                            { latitude: item.lat, longitude: item.lng },
+                            {
+                              latitude: userLocation.latitude,
+                              longitude: userLocation.longitude,
+                            }
+                          )
+                        ),
+                        2
+                      ) + " mi"}
+                </ThemedSubtext>
 
-              <View style={[styles.footer, { borderColor: c.border }]}>
-                <Text style={[styles.meta, { color: c.subtext }]}>
+                <View style={[styles.footer, { borderColor: c.border }]}>
+                  <ThemedSubtext style={styles.meta}>
                     Updated: {timeAgo(item.updated_at)}
-                </Text>
-              </View>
+                  </ThemedSubtext>
+                </View>
+              </ThemedCard2>
             </Pressable>
           );
         }}
       />
-    </View>
+    </ThemedBg>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: "#f6f7fb",
-  },
+  
+  screen: { flex: 1, padding: 16, },
+  
+  // header 
+  header: { flexDirection: "row" },
+  textBox: { marginTop: 4, marginBottom: 12 },
+  title: { fontSize: 26, fontWeight: "800" },
+  titleBox: { display: "flex", flexDirection: "row", alignItems: "center", gap: 6 },
+  subtitle: { marginTop: 4, fontSize: 14 },
 
-  header: {
-    flexDirection: "row",
-  },
+  toggleWrap: { flexDirection: "row", gap: 10, marginTop: 5, marginBottom: 20 },
 
-  textBox: {
-    marginTop: 4,
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: "#0f172a",
-  },
-  subtitle: {
-    marginTop: 4,
-    fontSize: 14,
-    color: "#64748b",
+  // new ticket button
+  iconBox: {
+    width: 30,
+    height: 30,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   ticket: {
@@ -246,35 +272,30 @@ const styles = StyleSheet.create({
     marginRight: 20,
     alignSelf: "center",
 
-    shadowOpacity: .2,
-    shadowOffset: {width: 1, height: 1 },
-    
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 1, height: 1 },
+
     borderRadius: 140,
     padding: 12,
-    backgroundColor: "#77a0ff"
-
+    backgroundColor: "#77a0ff",
   },
+
   ticketPressed: {
     opacity: 0.85,
     transform: [{ scale: 0.98 }],
   },
-  grid: {
-    paddingTop: 6,
-    paddingBottom: 24,
-    alignSelf: "center",
-  },
-  row: {
-    gap: 12,
-  },
 
+  // list 
+  grid: { paddingTop: 6, paddingBottom: 24, alignSelf: "center" },
+  row: { gap: 12 },
+
+  
+  // station card
   card: {
     width: 165,
     marginTop: 14,
     padding: 14,
     borderRadius: 18,
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
     gap: 6,
 
     shadowColor: "#000",
@@ -283,10 +304,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     elevation: 2,
   },
-  cardPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.98 }],
-  },
+
+  cardPressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
 
   cardTop: {
     flexDirection: "row",
@@ -295,53 +314,29 @@ const styles = StyleSheet.create({
     gap: 10,
   },
 
-  abbrev: {
-    fontSize: 18,
-    fontWeight: "900",
-    color: "#0f172a",
-    letterSpacing: 0.3,
-  },
+  abbrev: { fontSize: 18, fontWeight: "900", letterSpacing: 0.3 },
 
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 999,
     borderWidth: 1,
-    backgroundColor: "#ffffff",
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: "800",
   },
 
-  buildingName: {
-    fontSize: 13,
-    color: "#334155",
-    marginTop: 2,
-  },
-
-  meta: {
-    fontSize: 12,
-    color: "#64748b",
-  },
+  badgeText: { fontSize: 12, fontWeight: "800" },
+  buildingName: { fontSize: 13, marginTop: 2 },
+  meta: { fontSize: 12 },
 
   footer: {
     marginTop: 6,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: "#d9dce0",
     flexDirection: "row",
     alignItems: "baseline",
     justifyContent: "space-between",
   },
-  footerLabel: {
-    fontSize: 11,
-    color: "#94a3b8",
-    fontWeight: "700",
-  },
-  footerValue: {
-    fontSize: 14,
-    color: "#0f172a",
-    fontWeight: "900",
-  },
+
+  footerLabel: { fontSize: 11, fontWeight: "700" },
+  footerValue: { fontSize: 14, fontWeight: "900" },
+
 });

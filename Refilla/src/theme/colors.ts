@@ -5,6 +5,7 @@ import { usePrefs } from "../context/prefs";
 
 export type Colors = {
     bg: string;
+    bg2: string;
     text: string;
     subtext: string;
     card: string;
@@ -14,7 +15,6 @@ export type Colors = {
     yes: string;
     no: string;
     ticketBubble: string;
-    bg2?: undefined;
 } | {
     bg: string;
     bg2: string;
@@ -37,6 +37,7 @@ export function useColors() {
   return dark
     ? {
         bg: "#0b1220",
+        bg2: "#111827",
         text: "#e5e7eb",
         subtext: "#94a3b8",
         card: "#0f172a",

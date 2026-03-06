@@ -10,7 +10,7 @@ import { getTicketById, updateTicket, deleteTicket, TicketRow } from '../../../.
 
 import { useColors } from "../../../../src/theme/colors";
 import { deleteStation, getStation, StationRow, updateStation } from "../../../../src/db/stationsRepo";
-import StationPreview from "../../../../components/stationPreview";
+import StationPreview from "../../../../components/StationPreview";
 import { FilterStatus, StationStatus } from '../../../../types/station';
 
 import { Ionicons } from "@expo/vector-icons";

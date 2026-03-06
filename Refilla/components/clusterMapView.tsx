@@ -4,7 +4,7 @@ import { Image, Text, View, StyleSheet } from 'react-native';
 import { useState, useMemo, useRef } from 'react';
 import { router } from 'expo-router';
 
-import AnimatedClusterBubble from './animatedClusterBubble';
+import AnimatedClusterBubble from './AnimatedClusterBubble';
 import Supercluster from 'supercluster';
 import MapView, { Callout, Marker } from 'react-native-maps';
 import { useNewMarkerLoc } from '../src/context/newMarkerLocation';

@@ -12,6 +12,9 @@ import type { Station } from "../../types/station";
 import type { CreateStationPayload, CreateTicketPayload, TicketCategory, TicketPriority, } from "../../types/ticket";
 import { createStation } from "../../src/db/stationsRepo";
 import { createTicket, TicketRow } from "../../src/db/ticketsRepo";
+import ThemedText from "../../components/ThemedText";
+import ThemedCard2 from "../../components/ThemedCard2";
+import ThemedSubtext from "../../components/ThemedSubtext";
 
 
 export default function NewTicket() {
@@ -128,10 +131,10 @@ export default function NewTicket() {
                 }}
       />
       <ScrollView style={[styles.screen, { backgroundColor: c.bg }]} contentContainerStyle={styles.content}>
-        <Text style={[styles.title, { color: c.text }]}>Add a New Station</Text>
-        <Text style={[styles.subtitle, { color: c.subtext }]}>
+        <ThemedText style={styles.title}>Add a New Station</ThemedText>
+        <ThemedText style={styles.subtitle}>
           Create a ticket for an existing station, or add a new station and report the issue.
-        </Text>
+        </ThemedText>
 
         <View style={styles.mapWrap}>
             <MapView
@@ -161,62 +164,62 @@ export default function NewTicket() {
         
         </View>
 
-        <View style={[styles.card, { backgroundColor: c.card2 }]}>
-            <Text style={[styles.cardTitle, { color: c.text }]}>New station info</Text>
+        <ThemedCard2 style={styles.card}>
+            <ThemedText style={styles.cardTitle}>New station info</ThemedText>
 
-            <Text style={[styles.label, { color: c.subtext }]}>*Building abbreviation</Text>
+            <ThemedSubtext style={styles.label}>*Building abbreviation</ThemedSubtext>
             <TextInput
               value={buildingAbre}
               onChangeText={setBuildingAbre}
               placeholder="e.g. CAS"
               placeholderTextColor={c.subtext}
-              style={[styles.input, { backgroundColor: c.bg }]}
+              style={[styles.input, { backgroundColor: c.bg, color: c.text }]}
               autoCapitalize="characters"
             />
 
-            <Text style={[styles.label, { color: c.subtext }]}>*Building name</Text>
+            <ThemedText style={styles.label}>*Building name</ThemedText>
             <TextInput
               value={buildingName}
               onChangeText={setBuildingName}
               placeholder="e.g. College of Arts & Sciences"
               placeholderTextColor={c.subtext}
-              style={[styles.input, { backgroundColor: c.bg }]}
+              style={[styles.input, { backgroundColor: c.bg, color: c.text }]}
             />
 
-            <Text style={[styles.label, { color: c.subtext }]}>*Directions / details</Text>
+            <ThemedText style={styles.label}>*Directions / details</ThemedText>
             <TextInput
               value={buildingDetails}
               onChangeText={setBuildingDetails}
               placeholder= {buildingAbre == "" ? "Where is it exactly?" : `Where is it exactly in ${buildingAbre}?`}
               placeholderTextColor={c.subtext}
-              style={[styles.input, styles.textArea, { backgroundColor: c.bg }]}
+              style={[styles.input, styles.textArea, { backgroundColor: c.bg, color: c.text }]}
               multiline
             />
-          </View>
+          </ThemedCard2>
 
-        <View style={[styles.card, { backgroundColor: c.card2 }]}>
-          <Text style={[styles.cardTitle, { color: c.text }]}>Ticket details</Text>
+        <ThemedCard2 style={styles.card}>
+          <ThemedText style={styles.cardTitle}>Ticket details</ThemedText>
 
-          <Text style={[styles.label, { color: c.subtext }]}>Title</Text>
+          <ThemedText style={styles.label}>Title</ThemedText>
           <TextInput
             value={title}
             onChangeText={setTitle}
             placeholder="Short summary"
             placeholderTextColor={c.subtext}
-            style={[styles.input, { backgroundColor: c.bg }]}
+            style={[styles.input, { backgroundColor: c.bg, color: c.text }]}
           />
 
-          <Text style={[styles.label, { color: c.text }]}>Description</Text>
+          <ThemedText style={styles.label}>Description</ThemedText>
           <TextInput
             value={description}
             onChangeText={setDescription}
             placeholder="Any helpful context?" 
             placeholderTextColor={c.subtext}
-            style={[styles.input, styles.textArea, { backgroundColor: c.bg }]}
+            style={[styles.input, styles.textArea, { backgroundColor: c.bg, color: c.text }]}
             multiline
           />
 
-        </View>
+        </ThemedCard2>
 
         <Pressable onPress={submit} style={({ pressed }) => [styles.submit, pressed && styles.submitPressed]}>
           <Text style={styles.submitText}>Submit ticket</Text>
@@ -247,13 +250,11 @@ const styles = StyleSheet.create({
 
   title: { 
     fontSize: 26, 
-    fontWeight: "900", 
-    color: "#0f172a" 
+    fontWeight: "900",
   },
   subtitle: { 
     marginTop: -6, 
-    fontSize: 14, 
-    color: "#64748b", 
+    fontSize: 14,
     lineHeight: 20 
   },
 
@@ -272,7 +273,6 @@ const styles = StyleSheet.create({
   toggleTextActive: { color: "#ffffff" },
 
   card: {
-    backgroundColor: "#ffffff",
     borderRadius: 18,
     padding: 14,
     borderWidth: 1,
@@ -284,9 +284,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     elevation: 2,
   },
-  cardTitle: { fontSize: 14, fontWeight: "900", color: "#0f172a" },
+  cardTitle: { fontSize: 14, fontWeight: "900" },
 
-  label: { fontSize: 12, fontWeight: "800", color: "#475569" },
+  label: { fontSize: 12, fontWeight: "800" },
   input: {
     borderWidth: 1,
     borderColor: "#e2e8f0",
@@ -295,48 +295,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    color: "#131d34",
   },
   textArea: { minHeight: 90, textAlignVertical: "top" },
-
-  pills: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  pill: {
-    width: 92,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    backgroundColor: "#ffffff",
-  },
-  pillActive: { backgroundColor: "#344e8b", borderColor: "#344e8b" },
-  pillText: { fontSize: 14, fontWeight: "900", color: "#131d34" },
-  pillTextActive: { color: "#ffffff" },
-  pillSub: { fontSize: 12, color: "#64748b" },
-  pillSubActive: { color: "#cbd5e1" },
-
-  pillSmall: {
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    backgroundColor: "#ffffff",
-  },
-  pillSmallActive: { backgroundColor: "#344e8b", borderColor: "#344e8b" },
-  pillSmallText: { fontSize: 12, fontWeight: "900", color: "#131d34" },
-  pillSmallTextActive: { color: "#ffffff" },
-
-  preview: {
-    padding: 12,
-    borderRadius: 14,
-    backgroundColor: "#f1f5f9",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    gap: 4,
-  },
-  previewTitle: { fontSize: 13, fontWeight: "900", color: "#0f172a" },
-  previewBody: { fontSize: 13, color: "#334155" },
+  
 
   submit: {
     marginTop: 6,

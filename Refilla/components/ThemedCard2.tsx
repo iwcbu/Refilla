@@ -10,7 +10,7 @@ const ThemedCard2 = ({ style, ...props }: Props) => {
 
   return (
 
-    <View style={[{backgroundColor: c.card2}, style]} {...props} />
+    <View style={[{backgroundColor: c.card2, borderColor: c.border2}, style]} {...props} />
 
   )
 }

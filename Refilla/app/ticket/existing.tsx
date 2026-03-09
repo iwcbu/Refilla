@@ -10,6 +10,9 @@ import type { CreateStationPayload, CreateTicketPayload, TicketCategory, TicketP
 import { useColors } from "../../src/theme/colors";
 import { getStation, StationRow } from '../../src/db/stationsRepo';
 import { createTicket, TicketRow } from "../../src/db/ticketsRepo";
+import ThemedText from "../../components/ThemedText";
+import ThemedCard2 from "../../components/ThemedCard2";
+import ThemedSubtext from "../../components/ThemedSubtext";
 
 
 
@@ -90,35 +93,35 @@ export default function ExistingStationTicket() {
                 />
 
             <ScrollView style={[styles.screen, { backgroundColor: c.bg } ]} contentContainerStyle={styles.content}>
-                <Text style={[styles.title, { color: c.text } ]}>Report an issue</Text>
-                <Text style={[styles.subtitle, { color: c.subtext } ]}>
+                <ThemedText style={styles.title}>Report an issue</ThemedText>
+                <ThemedText style={styles.subtitle}>
                     Create a ticket for station #{ stationId }
-                </Text>
+                </ThemedText>
 
             
-                <View style={[styles.card, { backgroundColor: c.card2 } ]}>
-                    <Text style={[styles.cardTitle, { color: c.text } ]}>Ticket details</Text>
+                <ThemedCard2 style={styles.card}>
+                    <ThemedText style={styles.cardTitle}>Ticket details</ThemedText>
 
-                    <Text style={[styles.label, { color: c.subtext }]}>Title</Text>
+                    <ThemedSubtext style={[styles.label, { color: c.subtext }]}>Title</ThemedSubtext>
                     <TextInput
                     value={title}
                     onChangeText={setTitle}
                     placeholder="Short summary"
                     placeholderTextColor={c.subtext}
-                    style={[styles.input, { backgroundColor: c.bg }]}
+                    style={[styles.input, { backgroundColor: c.bg, color: c.text }]}
                     />
 
-                    <Text style={styles.label}>Description</Text>
+                    <ThemedSubtext style={styles.label}>Description</ThemedSubtext>
                     <TextInput
                     value={description}
                     onChangeText={setDescription}
                     placeholder="Any helpful context?"
                     placeholderTextColor={c.subtext}
-                    style={[styles.input, styles.textArea, { backgroundColor: c.bg }]}
+                    style={[styles.input, styles.textArea, { backgroundColor: c.bg, color: c.text }]}
                     multiline
                     />
 
-                    <Text style={styles.label}>Category</Text>
+                    <ThemedSubtext style={styles.label}>Category</ThemedSubtext>
                     <View style={styles.pills}>
                     {([ "STATION DETAILS", "LEAK", "BROKEN", "FILTER", "REMOVE", "OTHER" ] as TicketCategory[]).map((cat) => {
                         const active = cat === category;
@@ -136,7 +139,7 @@ export default function ExistingStationTicket() {
                     })}
                     </View>
 
-                    <Text style={styles.label}>Priority</Text>
+                    <ThemedSubtext style={styles.label}>Priority</ThemedSubtext>
                     <View style={styles.pills}>
                     {(["LOW", "MEDIUM", "HIGH"] as TicketPriority[]).map((p) => {
                         const active = p === priority;
@@ -153,7 +156,7 @@ export default function ExistingStationTicket() {
                         );
                     })}
                     </View>
-                </View>
+                </ThemedCard2>
 
                 <Pressable onPress={submit} style={({ pressed }) => [styles.submit, pressed && styles.submitPressed]}>
                     <Text style={styles.submitText}>Submit ticket</Text>
@@ -183,12 +186,10 @@ const styles = StyleSheet.create({
     title: { 
         fontSize: 26, 
         fontWeight: "900", 
-        color: "#0f172a" 
     },
     subtitle: { 
         marginTop: -6, 
         fontSize: 14, 
-        color: "#64748b", 
         lineHeight: 20 
     },
 

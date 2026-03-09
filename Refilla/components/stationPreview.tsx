@@ -7,8 +7,13 @@ import { useLocalSearchParams, Stack, router } from "expo-router";;
 import { useColors } from "../src/theme/colors";
 import { TabBarIcon } from "../app/(tabs)/_layout";
 
-import { getStation, StationRow } from "../src/db/stationsRepo";
+import { StationRow } from "../src/db/stationsRepo";
 
+import ThemedBg from "./ThemedBg";
+import ThemedText from "./ThemedText";
+import ThemedSubtext from "./ThemedSubtext";
+import ThemedCard from "./ThemedCard";
+import ThemedCard2 from "./ThemedCard2";
 
 function filterColor(status: string) {
   if (status === "GREEN") return "#16a34a";
@@ -62,56 +67,56 @@ export default function StationPreview( { station }: SpProps) {
               headerBackTitle: "Back",
             }}
       />
-    <View style={[styles.screen, { backgroundColor: c.bg } ]}>
+    <ThemedBg style={styles.screen}>
       
       <View style={styles.header}>
-        <Text style={[styles.title, { color: c.text } ]}>Station Details</Text>
-        <Text style={[styles.subtitle, { color: c.subtext } ]}>
+        <ThemedText style={styles.title}>Station Details</ThemedText>
+        <ThemedSubtext style={styles.subtitle}>
           {station.buildingName} • {station.buildingAbre}
-        </Text>
+        </ThemedSubtext>
       </View>
 
-      <View style={[styles.card, { backgroundColor: c.card2 } ]}>
+      <ThemedCard style={[styles.card, { backgroundColor: c.card2 } ]}>
 
         <View style={styles.rowBetween}>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.label, { color: c.subtext } ]}>Station ID</Text>
-            <Text style={[styles.value, { color: c.text } ]}>#{station.id}</Text>
+            <ThemedText style={styles.label}>Station ID</ThemedText>
+            <ThemedText style={styles.value}>#{station.id}</ThemedText>
           </View>
 
-          <View style={[styles.statPill, { backgroundColor: c.card2 } ]}>
+          <ThemedCard2 style={styles.statPill}>
             <Pressable 
               style={({ pressed }) => [
                 pressed && styles.ticketPressed,
               ]}
               >
-                <View style={{ width: 30, height: 30, display: 'flex', justifyContent:'center', alignItems:'center' }}>
+                <View style={styles.gearIcon}>
                   <TabBarIcon name="gear" color={ c.no == '#000000' ? '#969696' : c.no } />
                 </View>
               </Pressable>
-          </View>
+          </ThemedCard2>
         </View>
 
 
         <View style={styles.badgeRow}>
           <View style={[styles.badge, { backgroundColor: (c.yes == '#00000') ? softBg(fColor) : c.card2, borderColor: fColor }]}>
-            <Text style={[styles.badgeKey, { color: c.text } ]}>Filter</Text>
-            <Text style={[styles.badgeVal, { color: fColor }]}>{station.filterStatus}</Text>
+            <ThemedText style={styles.badgeKey}>Filter</ThemedText>
+            <ThemedText style={styles.badgeVal}>{station.filterStatus}</ThemedText>
           </View>
 
           <View style={[styles.badge, { backgroundColor: (c.yes == '#00000') ? softBg(fColor) : c.card2, borderColor: sColor }]}>
-            <Text style={[styles.badgeKey, { color: c.text } ]}>Status</Text>
-            <Text style={[styles.badgeVal, { color: sColor }]}>{station.stationStatus}</Text>
+            <ThemedText style={styles.badgeKey}>Status</ThemedText>
+            <ThemedText style={styles.badgeVal}>{station.stationStatus}</ThemedText>
           </View>
         </View>
         
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: c.text } ]}>Where to go</Text>
-          <Text style={[styles.details, { color: c.text } ]}>
-            <Text style={[styles.detailsStrong, { color: c.text } ]}>{station.buildingAbre}:</Text>{" "}
+          <ThemedText style={styles.sectionTitle}>Where to go</ThemedText>
+          <ThemedText style={[styles.details, { color: c.text } ]}>
+            <ThemedText style={[styles.detailsStrong, { color: c.text } ]}>{station.buildingAbre}:</ThemedText>{" "}
             {station.buildingDetails}
-          </Text>
-          <Text style={[styles.meta, { color: c.subtext } ]}>Last updated: {station.updated_at}</Text>
+          </ThemedText>
+          <ThemedText style={[styles.meta, { color: c.subtext } ]}>Last updated: {station.updated_at}</ThemedText>
         </View>
 
 
@@ -136,8 +141,8 @@ export default function StationPreview( { station }: SpProps) {
             </MapView>
         
         </View>
-      </View>
-    </View>
+      </ThemedCard>
+    </ThemedBg>
   </>
   );
 }
@@ -301,4 +306,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     opacity: 0.8,
   },
+  gearIcon: { 
+    width: 30, 
+    height: 30, 
+
+    display: 'flex', 
+    justifyContent:'center', 
+    alignItems:'center' 
+  }
 });

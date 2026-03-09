@@ -192,7 +192,7 @@ export default function ListTab() {
               }}
               style={({ pressed }) => [pressed && styles.cardPressed]}
             >
-              <ThemedCard2 style={styles.card}>
+              <ThemedCard2 style={[styles.card, { borderColor: c.border2 } ]}>
                 <View style={styles.cardTop}>
                   <ThemedText style={styles.abbrev}>{item.buildingAbre}</ThemedText>
 
@@ -297,6 +297,8 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 18,
     gap: 6,
+
+    borderWidth: 2,
 
     shadowColor: "#000",
     shadowOpacity: 0.06,

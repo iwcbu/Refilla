@@ -9,6 +9,10 @@ import { TabBarIcon } from "../(tabs)/_layout";
 
 
 import { getStation } from "../../src/db/stationsRepo";
+import ThemedCard2 from "../../components/ThemedCard2";
+import ThemedBg from "../../components/ThemedBg";
+import ThemedText from "../../components/ThemedText";
+import ThemedSubtext from "../../components/ThemedSubtext";
 
 
 function filterColor(status: string) {
@@ -59,24 +63,24 @@ export default function StationDetail() {
               headerBackTitle: "Back",
             }}
       />
-    <View style={[styles.screen, { backgroundColor: c.bg } ]}>
+    <ThemedBg style={[styles.screen, { backgroundColor: c.bg } ]}>
       
       <View style={styles.header}>
-        <Text style={[styles.title, { color: c.text } ]}>Station Details</Text>
-        <Text style={[styles.subtitle, { color: c.subtext } ]}>
+        <ThemedText style={styles.title}>Station Details</ThemedText>
+        <ThemedSubtext style={styles.subtitle}>
           {station.buildingName} • {station.buildingAbre}
-        </Text>
+        </ThemedSubtext>
       </View>
 
-      <View style={[styles.card, { backgroundColor: c.card2 } ]}>
+      <ThemedCard2 style={[styles.card, { backgroundColor: c.card2 } ]}>
 
         <View style={styles.rowBetween}>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.label, { color: c.subtext } ]}>Station ID</Text>
-            <Text style={[styles.value, { color: c.text } ]}>#{station.id}</Text>
+            <ThemedText style={styles.label}>Station ID</ThemedText>
+            <ThemedText style={styles.value}>#{station.id}</ThemedText>
           </View>
 
-          <View style={[styles.statPill, { backgroundColor: c.card2 } ]}>
+          <ThemedCard2 style={styles.statPill}>
             <Pressable 
               style={({ pressed }) => [
                 pressed && styles.ticketPressed,
@@ -87,11 +91,11 @@ export default function StationDetail() {
                   params: { stationId: station.id}
                 })
               }}>
-                <View style={{ width: 30, height: 30, display: 'flex', justifyContent:'center', alignItems:'center' }}>
+                <View style={styles.ticketIcon}>
                   <TabBarIcon name="gear" color={ c.no == '#000000' ? '#969696' : c.no } />
                 </View>
               </Pressable>
-          </View>
+          </ThemedCard2>
         </View>
 
 
@@ -138,8 +142,8 @@ export default function StationDetail() {
             </MapView>
         
         </View>
-      </View>
-    </View>
+      </ThemedCard2 >
+    </ThemedBg>
   </>
   );
 }
@@ -168,12 +172,10 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: "800",
     letterSpacing: 0.2,
-    color: "#0f172a",
   },
   subtitle: {
     marginTop: 4,
     fontSize: 14,
-    color: "#64748b",
   },
 
   card: {
@@ -198,13 +200,11 @@ const styles = StyleSheet.create({
 
   label: {
     fontSize: 12,
-    color: "#64748b",
     marginBottom: 4,
   },
   value: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#0f172a",
   },
 
   statPill: {
@@ -226,7 +226,6 @@ const styles = StyleSheet.create({
   },
   badgeKey: {
     fontSize: 11,
-    color: "#475569",
   },
   badgeVal: {
     marginTop: 2,
@@ -243,22 +242,18 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: "800",
-    color: "#0f172a",
     marginBottom: 6,
   },
   details: {
     fontSize: 14,
     lineHeight: 20,
-    color: "#334155",
   },
   detailsStrong: {
     fontWeight: "800",
-    color: "#0f172a",
   },
   meta: {
     marginTop: 8,
     fontSize: 12,
-    color: "#94a3b8",
   },
 
   mapWrap: {
@@ -284,7 +279,14 @@ const styles = StyleSheet.create({
     borderRadius: 140,
     padding: 12,
     backgroundColor: "#77a0ff"
+  },
+  ticketIcon: { 
+    width: 30, 
+    height: 30,
 
+    display: 'flex', 
+    justifyContent:'center', 
+    alignItems:'center' 
   },
   ticketPressed: {
     opacity: 0.85,

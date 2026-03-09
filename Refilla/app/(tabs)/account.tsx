@@ -28,6 +28,12 @@ type Preferences = Record<PrefKey, boolean>;
 export default function Settings() {
   const c = useColors();
   const { prefs, setPref } = usePrefs();
+  
+
+  const handleLogout = () => {
+    // Implement logout logic here, e.g., clearing auth tokens, navigating to login screen, etc.
+    console.log('User logged out');
+  }
 
   return (
     <ThemedBg style={styles.screen}>
@@ -109,6 +115,12 @@ export default function Settings() {
                     </View>
                 </ThemedCard2>
             </View>
+            <View style={styles.section}>
+                <Pressable onPress={ () => handleLogout() }>
+                    <ThemedText style={styles.sectionTitle}>Logout</ThemedText>
+                </Pressable>
+            </View>
+            
         </ScrollView>
     </ThemedBg>
   );
@@ -141,7 +153,7 @@ const styles = StyleSheet.create({
     profileSubtitle: { fontSize: 14, marginTop: 2 },
 
     // sections
-    section: { gap: 8 },
+    section: { gap: 8, marginTop: 20 },
     sectionTitle: {
         fontSize: 14,
         fontWeight: '600',

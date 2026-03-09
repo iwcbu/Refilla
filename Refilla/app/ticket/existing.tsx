@@ -174,7 +174,6 @@ const styles = StyleSheet.create({
 
     screen: { 
         flex: 1,
-        backgroundColor: "#f6f7fb", 
         paddingTop: 40 
     },
     content: { 
@@ -200,7 +199,6 @@ const styles = StyleSheet.create({
         borderRadius: 14,
         borderWidth: 1,
         borderColor: "#e5e7eb",
-        backgroundColor: "#ffffff",
         alignItems: "center",
     },
     toggleBtnActive: { backgroundColor: "#344e8b", borderColor: "#344e8b" },
@@ -208,7 +206,6 @@ const styles = StyleSheet.create({
     toggleTextActive: { color: "#ffffff" },
 
     card: {
-        backgroundColor: "#ffffff",
         borderRadius: 18,
         padding: 14,
         borderWidth: 1,
@@ -220,18 +217,16 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 6 },
         elevation: 2,
     },
-    cardTitle: { fontSize: 14, fontWeight: "900", color: "#0f172a" },
+    cardTitle: { fontSize: 14, fontWeight: "900", },
 
-    label: { fontSize: 12, fontWeight: "800", color: "#475569" },
+    label: { fontSize: 12, fontWeight: "800" },
     input: {
         borderWidth: 1,
         borderColor: "#e2e8f0",
-        backgroundColor: "#f8fafc",
         borderRadius: 14,
         paddingHorizontal: 12,
         paddingVertical: 10,
         fontSize: 14,
-        color: "#131d34",
     },
     textArea: { minHeight: 90, textAlignVertical: "top" },
 

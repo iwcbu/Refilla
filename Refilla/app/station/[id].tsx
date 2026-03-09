@@ -1,6 +1,6 @@
 // app/station/[id].tsx
 
-import { ActivityIndicator, StyleSheet, View, Text, Pressable } from "react-native";
+import { ActivityIndicator, StyleSheet, View, Text, Pressable, ScrollView, Alert, Platform } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useLocalSearchParams, Stack, router } from "expo-router";;
 
@@ -13,12 +13,15 @@ import ThemedCard2 from "../../components/ThemedCard2";
 import ThemedBg from "../../components/ThemedBg";
 import ThemedText from "../../components/ThemedText";
 import ThemedSubtext from "../../components/ThemedSubtext";
+import { Ionicons } from '@expo/vector-icons';
+import ThemedCard from '../../components/ThemedCard';
 
 
 function filterColor(status: string) {
   if (status === "GREEN") return "#16a34a";
   if (status === "YELLOW") return "#f59e0b";
-  return "#ef4444";
+  if (status === "RED") return "#ef4444";
+  return "#64748b";
 }
 
 function statusColor(status: string) {
@@ -52,6 +55,22 @@ export default function StationDetail() {
   const fColor = filterColor(station.filterStatus);
   const sColor = statusColor(station.stationStatus);
 
+  const handleDirections = (station: any) => {
+
+    const lat = station.lat;
+    const lng = station.lng;
+
+    if (Platform.OS === 'ios') {
+      router.push(`http://maps.apple.com/?daddr=${lat},${lng}`);
+    } else {
+      router.push(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`);
+    }
+  }
+  
+  const handleAddToFavs = (stationId: number) => {
+    Alert.alert("Implement this soon!"); // Placeholder for future implementation
+  }
+
   return (
     <>
       <Stack.Screen
@@ -64,7 +83,6 @@ export default function StationDetail() {
             }}
       />
     <ThemedBg style={[styles.screen, { backgroundColor: c.bg } ]}>
-      
       <View style={styles.header}>
         <ThemedText style={styles.title}>Station Details</ThemedText>
         <ThemedSubtext style={styles.subtitle}>
@@ -81,19 +99,17 @@ export default function StationDetail() {
           </View>
 
           <ThemedCard2 style={styles.statPill}>
-            <Pressable 
+            <Pressable
+            onPress={() => {
+              Alert.alert('Station Details', 'This pages shows detailed information about the station, including its status, filter condition, and location. You can also get directions to the station or add the station to your favorites. \
+                \n \n Filters condition guide: \nGreen: Good \n Yellow: Replace Soon \n Red: Replace Now \n NA: Not Applicable \
+                \n \n If you have any issues with this station, please report it by tapping the "Report an Issue" button at the bottom of the page. Your feedback helps us maintain the quality of your water bottle filling experience!');
+            }}
               style={({ pressed }) => [
                 pressed && styles.ticketPressed,
               ]}
-              onPress={() => {
-                router.push({ 
-                  pathname: `/ticket/existing`,
-                  params: { stationId: station.id}
-                })
-              }}>
-                <View style={styles.ticketIcon}>
-                  <TabBarIcon name="gear" color={ c.no == '#000000' ? '#969696' : c.no } />
-                </View>
+              >
+                <Ionicons name="information-circle-outline" size={24} color={c.subtext} style={{ marginLeft:'auto' }} />
               </Pressable>
           </ThemedCard2>
         </View>
@@ -101,23 +117,22 @@ export default function StationDetail() {
 
         <View style={styles.badgeRow}>
           <View style={[styles.badge, { backgroundColor: (c.yes == '#00000') ? softBg(fColor) : c.card2, borderColor: fColor }]}>
-            <Text style={[styles.badgeKey, { color: c.text } ]}>Filter</Text>
-            <Text style={[styles.badgeVal, { color: fColor }]}>{station.filterStatus}</Text>
+            <ThemedText style={styles.badgeKey}>Filter</ThemedText>
+            <Text style={[styles.badgeVal, { color: fColor == '#64748b' ? c.text : fColor }]}>{station.filterStatus}</Text>
           </View>
 
           <View style={[styles.badge, { backgroundColor: (c.yes == '#00000') ? softBg(fColor) : c.card2, borderColor: sColor }]}>
-            <Text style={[styles.badgeKey, { color: c.text } ]}>Status</Text>
+            <ThemedText style={styles.badgeKey}>Status</ThemedText>
             <Text style={[styles.badgeVal, { color: sColor }]}>{station.stationStatus}</Text>
           </View>
         </View>
         
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: c.text } ]}>Where to go</Text>
-          <Text style={[styles.details, { color: c.text } ]}>
-            <Text style={[styles.detailsStrong, { color: c.text } ]}>{station.buildingAbre}:</Text>{" "}
+          <ThemedText style={styles.sectionTitle}>Where to go</ThemedText>
+          <ThemedText style={styles.details}>
+            <ThemedText style={styles.detailsStrong}>{station.buildingAbre}:</ThemedText>{" "}
             {station.buildingDetails}
-          </Text>
-          <Text style={[styles.meta, { color: c.subtext } ]}>Last updated: {station.updated_at}</Text>
+          </ThemedText>
         </View>
 
 
@@ -143,7 +158,64 @@ export default function StationDetail() {
         
         </View>
       </ThemedCard2 >
+      <ThemedText style={styles.meta}>Last updated: {station.updated_at}</ThemedText>
+      
+      <View style={{ marginTop: 30, flexDirection:'row', justifyContent:'space-evenly', gap: 12 }}>
+        <View style={{ alignItems:'center', gap: 6, width: 110 }}>
+          <Pressable 
+                  style={({ pressed }) => [
+                    pressed && styles.ticketPressed,
+                  ]}
+                  onPress={() => {
+                    router.push({ 
+                      pathname: `/ticket/existing`,
+                      params: { stationId: station.id}
+                    })
+                  }}>      
+            <ThemedCard2 style={styles.footerTabs}>
+              <View style={styles.ticketIcon}>
+                <TabBarIcon name="exclamation-circle" color={ c.no == '#000000' ? '#969696' : c.no }/>
+              </View>
+            </ThemedCard2>
+          </Pressable>
+          <ThemedText>Report an Issue</ThemedText>
+        </View>
+        <View style={{ alignItems:'center', gap: 6, width: 110 }}>
+          <Pressable 
+                  style={({ pressed }) => [
+                    pressed && styles.ticketPressed,
+                  ]}
+                  onPress={() => handleDirections(station) }
+            >      
+            <ThemedCard2 style={styles.footerTabs}>
+              <View style={styles.ticketIcon}>
+                <Ionicons name="walk" color={ c.no == '#000000' ? '#969696' : c.no } size={30} />
+              </View>
+            </ThemedCard2>
+          </Pressable>
+          <ThemedText>Directions</ThemedText>
+        </View>
+        <View style={{ alignItems:'center', gap: 6, width: 110 }}>
+          <Pressable 
+                  style={({ pressed }) => [
+                    pressed && styles.ticketPressed,
+                  ]}
+                  onPress={() => handleAddToFavs(station.id) }
+          > 
+            <ThemedCard2 style={styles.footerTabs}>     
+              <View style={styles.ticketIcon}>
+                <TabBarIcon name="heart" color={ c.no == '#000000' ? '#969696' : c.no } />
+              </View>
+            </ThemedCard2>
+          </Pressable>
+          <ThemedText>Add to Favorites</ThemedText>
+        </View>
+      </View>
+
+        
+
     </ThemedBg>
+    
   </>
   );
 }
@@ -179,7 +251,6 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    backgroundColor: "#ffffff",
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
@@ -305,4 +376,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     opacity: 0.8,
   },
+  footerTabs: {
+    width: 75,
+    height: 75,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowOpacity: 0.14,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  }
 });

@@ -14,6 +14,10 @@ import StationPreview from "../../../../components/StationPreview";
 import { FilterStatus, StationStatus } from '../../../../types/station';
 
 import { Ionicons } from "@expo/vector-icons";
+import ThemedBg from "../../../../components/ThemedBg";
+import ThemedCard2 from "../../../../components/ThemedCard2";
+import ThemedText from "../../../../components/ThemedText";
+import ThemedCard from "../../../../components/ThemedCard";
 
 
 type StationForm = {
@@ -111,7 +115,7 @@ export default function TicketDetailScreen() {
                 onPress: () => {
                     if (station && ticket?.category == "NEW") deleteStation(station.id)
                     deleteTicket(ticketId);
-                    router.navigate(`list`);
+                    router.navigate(`adminView`);
                 },
             },
         ]);
@@ -220,23 +224,23 @@ export default function TicketDetailScreen() {
               headerBackTitle: "Cancel",
             }}
       />
-    <View style={{padding: 30, backgroundColor: c.bg, flex: 1}}>
-        <ScrollView contentContainerStyle={{ display: "flex", gap: 12}} showsVerticalScrollIndicator={false}>
-            <View style={[styles.container, { backgroundColor: c.card2, borderColor: c.border2 }]}>
+    <ThemedBg style={{padding: 30, flex: 1 }}>
+        <ScrollView contentContainerStyle={{ display: "flex", gap: 20}} showsVerticalScrollIndicator={false}>
+            <ThemedCard2 style={[styles.container, { borderColor: c.border2 }]}>
                 <View style={{ display: 'flex', justifyContent:'space-between' }}>
 
-                    <Text style={[styles.label, { color: c.text } ]}>Ticket Information</Text>
+                    <ThemedText style={styles.label}>Ticket Information</ThemedText>
 
                     <Pressable onPress={showTicInfHelp} hitSlop={10}>
                             <Ionicons name="information-circle-outline" size={24} color={c.subtext} style={{ marginLeft:'auto' }} />
                     </Pressable>
                 </View>
-                <Text style={[styles.meta, { color: c.subtext } ]}>Ticket #{ticket.id}</Text>
-                <Text style={[styles.meta, { color: c.subtext } ]}>Station ID: {ticket.station_id}</Text>
-                <Text style={[styles.meta, { color: c.subtext } ]}>Submitted by: user{ticket.user_id}</Text>
-                <Text style={[styles.meta, { color: c.subtext } ]}>Created: {ticket.created_at}</Text>
-                
-                <Text style={[styles.label, { color: c.text } ]}>Status</Text>
+                <ThemedText style={styles.meta}>Ticket #{ticket.id}</ThemedText>
+                <ThemedText style={styles.meta}>Station ID: {ticket.station_id}</ThemedText>
+                <ThemedText style={styles.meta}>Submitted by: user{ticket.user_id}</ThemedText>
+                <ThemedText style={styles.meta}>Created: {ticket.created_at}</ThemedText>
+
+                <ThemedText style={[styles.label, { color: c.text } ]}>Status</ThemedText>
                 <View style={styles.pills}>
                     {(["OPEN", "WIP", "CLOSED"]).map((s) => {
                         const active = s === status;
@@ -281,7 +285,7 @@ export default function TicketDetailScreen() {
                     <Text style={[styles.buttonText, {color: c.yes}]}>Save Ticket Information</Text>
                 </Pressable>
 
-            </View>
+            </ThemedCard2>
 
 
 
@@ -314,7 +318,7 @@ export default function TicketDetailScreen() {
                 </View>
             </View>
         </ScrollView>
-    </View>
+    </ThemedBg>
 
 
     <Modal
@@ -519,7 +523,6 @@ const styles = StyleSheet.create({
     },
     meta: {
         fontSize: 13,
-        color: "#666",
     },
     
 
@@ -531,7 +534,6 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         padding: 10,
         fontSize: 14,
-        backgroundColor: "#fff",
     },
     actions: {
         marginTop: 20,

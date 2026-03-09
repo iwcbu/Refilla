@@ -1,7 +1,7 @@
 // components/clusterMapView.tsx
 
 import { Image, Text, View, StyleSheet } from 'react-native';
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useImperativeHandle, forwardRef} from 'react';
 import { router } from 'expo-router';
 
 import AnimatedClusterBubble from './AnimatedClusterBubble';
@@ -34,11 +34,11 @@ function regionToZoom(lngDelta: number) {
 type CsmProps = {
     stations: StationRow[];
     userLocation: Coords | null;
+    centerOnLocation?: (coords: Coords) => void; // Add this line
 }
+const ClusterStationMap = forwardRef<any, CsmProps>(({ stations, userLocation }, ref) => {
 
-export default function ClusterStationMap({ stations, userLocation }: CsmProps) {
-
-    const mapRef = useRef<any>(null);
+    const internalMapRef = useRef<any>(null);
     const { setNewMarkerLoc } = useNewMarkerLoc();
 
     
@@ -88,13 +88,27 @@ export default function ClusterStationMap({ stations, userLocation }: CsmProps) 
         }
         setSelectedId(null);
     }
-    
+
+
+    useImperativeHandle(ref, () => ({
+        centerOnLocation(coords: Coords) {
+            internalMapRef.current?.animateToRegion(
+                {
+                    latitude: coords.latitude,
+                    longitude: coords.longitude,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01,
+                },
+                500
+            );
+        }
+    }));
 
     return ( 
 
         <MapView
 
-            ref={ mapRef }
+            ref={ internalMapRef }
             style={styles.map}
             
 
@@ -129,7 +143,7 @@ export default function ClusterStationMap({ stations, userLocation }: CsmProps) 
                             coordinate={{ latitude: lat, longitude: lng }}
                             onPress={() => {
                                 const nextDelta = Math.max(region.latitudeDelta * 0.5, 0.002);
-                                mapRef.current?.animateToRegion(
+                                internalMapRef.current?.animateToRegion(
                                 {
                                     latitude: lat,
                                     longitude: lng,
@@ -183,7 +197,9 @@ export default function ClusterStationMap({ stations, userLocation }: CsmProps) 
 
         </MapView>
     );
-}
+})
+
+export default ClusterStationMap; 
 
 const styles = StyleSheet.create({
   map: {

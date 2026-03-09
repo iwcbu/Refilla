@@ -18,7 +18,8 @@ import ThemedCard2 from "./ThemedCard2";
 function filterColor(status: string) {
   if (status === "GREEN") return "#16a34a";
   if (status === "YELLOW") return "#f59e0b";
-  return "#ef4444";
+  if (status === "RED") return "#ef4444";
+  return "#64748b";
 }
 
 function statusColor(status: string) {
@@ -160,7 +161,6 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     padding: 16,
-    backgroundColor: "#f6f7fb",
   },
 
   header: {
@@ -171,16 +171,13 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: "800",
     letterSpacing: 0.2,
-    color: "#0f172a",
   },
   subtitle: {
     marginTop: 4,
     fontSize: 14,
-    color: "#64748b",
   },
 
   card: {
-    backgroundColor: "#ffffff",
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
@@ -207,7 +204,6 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#0f172a",
   },
 
   statPill: {
@@ -229,7 +225,6 @@ const styles = StyleSheet.create({
   },
   badgeKey: {
     fontSize: 11,
-    color: "#475569",
   },
   badgeVal: {
     marginTop: 2,
@@ -246,22 +241,18 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: "800",
-    color: "#0f172a",
     marginBottom: 6,
   },
   details: {
     fontSize: 14,
     lineHeight: 20,
-    color: "#334155",
   },
   detailsStrong: {
     fontWeight: "800",
-    color: "#0f172a",
   },
   meta: {
     marginTop: 8,
     fontSize: 12,
-    color: "#94a3b8",
   },
 
   mapWrap: {
@@ -275,19 +266,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 220,
     alignSelf: "center",
-  },
-  ticket: {
-    marginLeft: "auto",
-    marginRight: 20,
-    alignSelf: "center",
-
-    shadowOpacity: .2,
-    shadowOffset: {width: 1, height: 1 },
-    
-    borderRadius: 140,
-    padding: 12,
-    backgroundColor: "#77a0ff"
-
   },
   ticketPressed: {
     opacity: 0.85,

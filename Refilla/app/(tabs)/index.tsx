@@ -4,23 +4,30 @@ import { Pressable, StyleSheet, View, Text, ActivityIndicator } from 'react-nati
 import { useEffect, useState, useRef, useMemo, act } from 'react';
 
 import { useLiveLocation } from '../../src/context/userLocation';
+import { useAuth } from '../../src/context/auth';
 import ClusterStationMap  from '../../components/clusterMapView';
-import { listStations } from '../../src/db/stationsRepo';
+import { listStations, syncStations } from '../../src/db/stationsRepo';
 import ThemedCard2 from '../../components/ThemedCard2';
 import ThemedSubtext from '../../components/ThemedSubtext';
 import ThemedText from '../../components/ThemedText';
 import { router } from 'expo-router';
 import { useNewMarkerLoc } from '../../src/context/newMarkerLocation';
 import { Ionicons } from '@expo/vector-icons';
+import { getVisibleStationsForUser } from '../../src/features/account/organizationService';
 
 
 
 export default function App() {
+  const { currentUser } = useAuth();
 
   const [stations, setStations] = useState(() => listStations());
+  const visibleStations = useMemo(
+    () => getVisibleStationsForUser(stations, currentUser?.id),
+    [currentUser?.id, stations]
+  );
   const activeStations = useMemo(
-      () => stations.filter((s) => s.stationStatus === "ACTIVE"),
-      [stations]
+      () => visibleStations.filter((s) => s.stationStatus === "ACTIVE"),
+      [visibleStations]
   );
 
   const { setNewMarkerLoc } = useNewMarkerLoc();
@@ -33,6 +40,12 @@ export default function App() {
   // starts live location
   useEffect(() => {
     start();
+  }, []);
+
+  useEffect(() => {
+    syncStations().then(setStations).catch((error) => {
+      console.log("Could not sync stations", error);
+    });
   }, []);
 
   const handleBackToUser = () => {
@@ -67,11 +80,17 @@ export default function App() {
     }, 2000);
   }
 
-  const handleRefreshStations = () => {
+  const handleRefreshStations = async () => {
     setRefreshingStations(true);
     console.log('Refreshing station data...');
 
-    setStations(listStations())
+    try {
+      const synced = await syncStations();
+      setStations(synced);
+    } catch (error) {
+      console.log("Could not sync stations", error);
+      setStations(listStations());
+    }
 
     setTimeout(() => {
       console.log('Station data refreshed');

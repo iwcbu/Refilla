@@ -3,6 +3,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs } from "expo-router";
 
+import { useAdminAuth } from '../../src/context/adminAuth';
 import { useColors } from '../../src/theme/colors';
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
@@ -10,11 +11,12 @@ export function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
   color: string;
 }) {
-  return <FontAwesome size={28} style={{ }} {...props} />;
+  return <FontAwesome size={28} {...props} />;
 }
 
 export default function TabsLayout() {
   const c = useColors();
+  const { isAdminSignedIn } = useAdminAuth();
 
   return (
     <Tabs
@@ -54,19 +56,21 @@ export default function TabsLayout() {
       <Tabs.Screen 
         name="account" 
         options={{ 
-          title: "Account", 
-          tabBarIcon: ({ color }) => <TabBarIcon name="question" color={color} /> 
+          title: "Profile", 
+          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} /> 
         }} 
       />
-      
+
       <Tabs.Screen 
         name="adminView" 
         options={{ 
           title: "Admin", 
+          href: isAdminSignedIn ? "/adminView" : null,
           tabBarIcon: ({ color }) => <TabBarIcon name="hdd-o" color={color} /> 
         }} 
       />
-
+      
+    
     </Tabs>
   );
 }

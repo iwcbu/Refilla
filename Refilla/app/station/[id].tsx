@@ -1,27 +1,36 @@
 // app/station/[id].tsx
 
+import { useState, useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View, Text, Pressable, ScrollView, Alert, Platform } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useLocalSearchParams, Stack, router } from "expo-router";;
 
 import { useColors } from "../../src/theme/colors";
-import { TabBarIcon } from "../(tabs)/_layout";
+import { useAuth } from "../../src/context/auth";
 
+import { TabBarIcon } from "../(tabs)/_layout";
+import { Ionicons } from '@expo/vector-icons';
 
 import { getStation } from "../../src/db/stationsRepo";
+
+
+import { canUserAccessStation } from '../../src/features/account/organizationService';
+import { getOrg } from '../../src/db/organizationRepo';
+import {
+  isFavoriteStation,
+  toggleFavoriteStation,
+} from '../../src/db/favoriteStationsRepo';
+
 import ThemedCard2 from "../../components/ThemedCard2";
 import ThemedBg from "../../components/ThemedBg";
 import ThemedText from "../../components/ThemedText";
 import ThemedSubtext from "../../components/ThemedSubtext";
-import { Ionicons } from '@expo/vector-icons';
-import ThemedCard from '../../components/ThemedCard';
-
 
 function filterColor(status: string) {
   if (status === "GREEN") return "#16a34a";
   if (status === "YELLOW") return "#f59e0b";
   if (status === "RED") return "#ef4444";
-  return "#64748b";
+  return "#00000041";
 }
 
 function statusColor(status: string) {
@@ -37,6 +46,7 @@ function softBg(hex: string) {
 }
 
 export default function StationDetail() {
+  const { currentUser } = useAuth();
 
   // ================= station =================
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -52,8 +62,27 @@ export default function StationDetail() {
 
   // ================= misc =================
   const c = useColors();
+  const organization = station.organization_id ? getOrg(station.organization_id) : null;
   const fColor = filterColor(station.filterStatus);
   const sColor = statusColor(station.stationStatus);
+  const canAccess = canUserAccessStation(station, currentUser?.id);
+  const [isFavorite, setIsFavorite] = useState(currentUser ? isFavoriteStation(currentUser.id, station.id) : false);
+
+  if (!canAccess) {
+    return (
+      <ThemedBg style={[styles.screen, styles.accessDeniedWrap]}>
+        <ThemedCard2 style={styles.accessDeniedCard}>
+          <ThemedText style={styles.title}>Organization-only fountain</ThemedText>
+          <ThemedSubtext style={styles.subtitle}>
+            This fountain is only available to members of {organization?.name ?? "the linked organization"}.
+          </ThemedSubtext>
+          <Pressable onPress={() => router.replace("/account/profile")} style={styles.joinOrgButton}>
+            <ThemedText style={styles.joinOrgButtonText}>Manage organizations</ThemedText>
+          </Pressable>
+        </ThemedCard2>
+      </ThemedBg>
+    );
+  }
 
   const handleDirections = (station: any) => {
 
@@ -68,8 +97,20 @@ export default function StationDetail() {
   }
   
   const handleAddToFavs = (stationId: number) => {
-    Alert.alert("Implement this soon!"); // Placeholder for future implementation
+    if (!currentUser) {
+      Alert.alert("Profile required", "Please choose a profile from the Profile tab to save favorites.");
+      router.push("/account/login/login");
+      return;
+    }
+
+    setIsFavorite(!isFavorite);
+    const newIsFavorite = toggleFavoriteStation(currentUser.id, stationId);
+  
   }
+
+  useEffect(() => {
+    setIsFavorite(currentUser ? isFavoriteStation(currentUser.id, station.id) : false)
+  }, [isFavorite]);
 
   return (
     <>
@@ -78,15 +119,15 @@ export default function StationDetail() {
               headerShown: true, 
               headerStyle: { backgroundColor: c.card2 },
               headerTintColor: c.text,
-              title: "Station",
+              title: 'Station Details',
               headerBackTitle: "Back",
             }}
       />
     <ThemedBg style={[styles.screen, { backgroundColor: c.bg } ]}>
       <View style={styles.header}>
-        <ThemedText style={styles.title}>Station Details</ThemedText>
-        <ThemedSubtext style={styles.subtitle}>
-          {station.buildingName} • {station.buildingAbre}
+        <ThemedText style={styles.title}>{station.buildingName} • {station.buildingAbre} </ThemedText>
+        <ThemedSubtext style={[styles.subtitle, { fontWeight: 'bold' }]}>
+          {organization?.name ?? "Available to all users"}
         </ThemedSubtext>
       </View>
 
@@ -116,9 +157,9 @@ export default function StationDetail() {
 
 
         <View style={styles.badgeRow}>
-          <View style={[styles.badge, { backgroundColor: (c.yes == '#00000') ? softBg(fColor) : c.card2, borderColor: fColor }]}>
+          <View style={[styles.badge, { backgroundColor: (c.yes == '#00000') ? softBg(fColor) : c.card2, borderColor: fColor == "#00000041" ? c.subtext : fColor }]}>
             <ThemedText style={styles.badgeKey}>Filter</ThemedText>
-            <Text style={[styles.badgeVal, { color: fColor == '#64748b' ? c.text : fColor }]}>{station.filterStatus}</Text>
+            <Text style={[styles.badgeVal, { color: fColor == "#00000041" ? c.subtext : fColor }]}>{station.filterStatus}</Text>
           </View>
 
           <View style={[styles.badge, { backgroundColor: (c.yes == '#00000') ? softBg(fColor) : c.card2, borderColor: sColor }]}>
@@ -204,11 +245,11 @@ export default function StationDetail() {
           > 
             <ThemedCard2 style={styles.footerTabs}>     
               <View style={styles.ticketIcon}>
-                <TabBarIcon name="heart" color={ c.no == '#000000' ? '#969696' : c.no } />
+                <Ionicons name={isFavorite ? "heart" : "heart-outline" } size={30} color={isFavorite ? "#ef8e8e" : "#b9b9b9"} />
               </View>
             </ThemedCard2>
           </Pressable>
-          <ThemedText>Add to Favorites</ThemedText>
+          <ThemedText>{isFavorite ? "Saved" : "Add to Favorites"}</ThemedText>
         </View>
       </View>
 
@@ -234,6 +275,26 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: "#f6f7fb",
+  },
+  accessDeniedWrap: {
+    justifyContent: "center",
+  },
+  accessDeniedCard: {
+    padding: 20,
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: 12,
+  },
+  joinOrgButton: {
+    alignSelf: "flex-start",
+    backgroundColor: "#2563eb",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  joinOrgButtonText: {
+    color: "#ffffff",
+    fontWeight: "700",
   },
 
   header: {

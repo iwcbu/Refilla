@@ -1,24 +1,29 @@
 // app/ticket/existing.tsx
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { router, useLocalSearchParams, Stack } from "expo-router";
 import { StyleSheet, View, Text, TextInput, Pressable, ScrollView, Alert } from "react-native";
 import { ActivityIndicator } from "react-native";
 
-import type { CreateStationPayload, CreateTicketPayload, TicketCategory, TicketPriority } from "../../types/ticket";
+import type { TicketCategory, TicketPriority } from "../../types/ticket";
 
 import { useColors } from "../../src/theme/colors";
-import { getStation, StationRow } from '../../src/db/stationsRepo';
-import { createTicket, TicketRow } from "../../src/db/ticketsRepo";
+import { getStation } from '../../src/db/stationsRepo';
+import { createTicket } from "../../src/db/ticketsRepo";
+import { useAuth } from "../../src/context/auth";
+import { getUser, incrementUserPoints } from "../../src/db/userRepo";
 import ThemedText from "../../components/ThemedText";
 import ThemedCard2 from "../../components/ThemedCard2";
 import ThemedSubtext from "../../components/ThemedSubtext";
+import { Ionicons } from "@expo/vector-icons";
 
 
 
 export default function ExistingStationTicket() {
 
     const { stationId }  = useLocalSearchParams<{ stationId: string }>();
+    const { currentUser } = useAuth();
+    const submittingProfile = currentUser ? getUser(currentUser.id) : null;
     const station = getStation(Number(stationId));
     if (station == null) {
         return (
@@ -49,6 +54,16 @@ export default function ExistingStationTicket() {
 
     const [submitting, setSubmitting] = useState(false);
 
+    const showExistingStationHelp = () => {
+      Alert.alert(
+        'Help to Report an Issue',
+        'Use this screen to report an issue on an existing station or submit a ticket to remove a station.\n\n' +
+        "• Submitting profile: shows which profile will be saved as the ticket author.\n" +
+        "• Ticket details: add the title, description, category, and priority that explain why this station is being created.\n\n" +
+        '• Category: select the category that matches the issue most; if a category does not apply, select other and explain the issue further in the description.\n'
+      )
+    }
+
     async function submit() {
         const err = validate();
         if (err) {
@@ -56,11 +71,17 @@ export default function ExistingStationTicket() {
             return;
         }
 
+        if (!currentUser) {
+            Alert.alert("Profile required", "Please choose a profile from the Profile tab before submitting a ticket.");
+            router.push("/account/login/login");
+            return;
+        }
+
         if (submitting) return;
         setSubmitting(true);
 
         const ticket = {
-            user_id: 1,
+            user_id: currentUser.id,
             station_id: Number(stationId),
             title: title.trim(),
             body: description.trim() || null,
@@ -71,6 +92,7 @@ export default function ExistingStationTicket() {
 
         try {
             createTicket(ticket)
+            incrementUserPoints(currentUser.id, 5);
             Alert.alert("Submitted", "Your ticket has been created.");
             router.back();
         } catch (e) {
@@ -89,6 +111,16 @@ export default function ExistingStationTicket() {
                 headerTintColor: c.text,
                 title: "Issue a Ticket",
                 headerBackTitle: "Back",
+                headerRight: () => (
+                  <Pressable onPress={showExistingStationHelp} hitSlop={10}>
+                    <Ionicons
+                      name="information-circle-outline"
+                      size={24}
+                      color={c.text}
+                    />
+                  </Pressable>
+                ),
+                
                 }}
                 />
 
@@ -97,6 +129,23 @@ export default function ExistingStationTicket() {
                 <ThemedText style={styles.subtitle}>
                     Create a ticket for station #{ stationId }
                 </ThemedText>
+
+                <ThemedCard2 style={styles.card}>
+                    <ThemedText style={styles.cardTitle}>Submitting profile</ThemedText>
+                    <View style={styles.profileRow}>
+                        <ThemedText style={styles.profileEmoji}>
+                            {submittingProfile?.avatar_emoji ?? "🙂"}
+                        </ThemedText>
+                        <View style={styles.profileMeta}>
+                            <ThemedText style={styles.profileName}>
+                                @{submittingProfile?.username ?? "choose_a_profile"}
+                            </ThemedText>
+                            <ThemedSubtext>
+                                This profile will appear as the ticket author.
+                            </ThemedSubtext>
+                        </View>
+                    </View>
+                </ThemedCard2>
 
             
                 <ThemedCard2 style={styles.card}>
@@ -128,7 +177,17 @@ export default function ExistingStationTicket() {
                         return (
                         <Pressable
                             key={cat}
-                            onPress={() => setCategory(cat)}
+                            onPress={() => {
+                              setCategory(cat)
+
+                              if (cat == 'BROKEN' || cat == 'LEAK') {
+                                setPriority("HIGH")
+                              } else if (cat == 'FILTER' || cat == 'OTHER') {
+                                setPriority('MEDIUM')
+                              } else { 
+                                setPriority('LOW')
+                              }
+                            }}
                             style={[styles.pillSmall, { backgroundColor: c.card2 }, active && styles.pillSmallActive, active && { backgroundColor: c.ticketBubble, } ]}
                         >
                             <Text style={[styles.pillSmallText, { color: c.text }, active && styles.pillSmallTextActive, active && { color: c.yes } ]}>
@@ -139,23 +198,6 @@ export default function ExistingStationTicket() {
                     })}
                     </View>
 
-                    <ThemedSubtext style={styles.label}>Priority</ThemedSubtext>
-                    <View style={styles.pills}>
-                    {(["LOW", "MEDIUM", "HIGH"] as TicketPriority[]).map((p) => {
-                        const active = p === priority;
-                        return (
-                        <Pressable
-                            key={p}
-                            onPress={() => setPriority(p)}
-                            style={[styles.pillSmall, { backgroundColor: c.card2 }, active && styles.pillSmallActive, active && { backgroundColor: c.ticketBubble, } ]}
-                        >
-                            <Text style={[styles.pillSmallText, { color: c.text }, active && styles.pillSmallTextActive, active && { color: c.yes } ]}>
-                            {p}
-                            </Text>
-                        </Pressable>
-                        );
-                    })}
-                    </View>
                 </ThemedCard2>
 
                 <Pressable onPress={submit} style={({ pressed }) => [styles.submit, pressed && styles.submitPressed]}>
@@ -257,6 +299,22 @@ const styles = StyleSheet.create({
     pillSmallActive: { backgroundColor: "#344e8b", borderColor: "#344e8b" },
     pillSmallText: { fontSize: 12, fontWeight: "900", color: "#131d34" },
     pillSmallTextActive: { color: "#ffffff" },
+    profileRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+    },
+    profileEmoji: {
+        fontSize: 30,
+    },
+    profileMeta: {
+        flex: 1,
+        gap: 2,
+    },
+    profileName: {
+        fontSize: 16,
+        fontWeight: "700",
+    },
 
     preview: {
         padding: 12,

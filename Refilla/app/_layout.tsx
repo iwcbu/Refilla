@@ -9,6 +9,9 @@ import PrefsContext, {DEFAULT_PREFS, type Prefs } from "../src/context/prefs";
 import { useColors } from "../src/theme/colors";
 import { LocationProvider } from "../src/context/userLocation";
 import { NewMarkerLocProvider } from '../src/context/newMarkerLocation';
+import { AuthProvider } from "../src/context/auth";
+import { AdminAuthProvider } from "../src/context/adminAuth";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import "../src/db/database";
 
@@ -55,62 +58,66 @@ export default function RootLayout() {
     <LocationProvider>
       <NewMarkerLocProvider>
         <PrefsContext.Provider value={{ prefs, setPref }}>
-          <Animated.View style={{ flex: 1, opacity: fade }}>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen 
-                name="station/[id]" 
-                options={{ 
-                  headerShown: true, 
-                  headerStyle: { backgroundColor: c.card2 },
-                  headerTintColor: c.text,
-                  title: "Station",
-                  headerBackTitle: "Back",
-                }}
-                />
-              <Stack.Screen 
-                name="ticket/review/delete/[id]" 
-                options={{ 
-                  headerShown: true, 
-                  headerStyle: { backgroundColor: c.card2 },
-                  headerTintColor: c.text,
-                  title: "Ticket",
-                  headerBackTitle: "Cancel",
-                }}
-                />
-              <Stack.Screen 
-                name="ticket/review/details/[id]" 
-                options={{ 
-                  headerShown: true, 
-                  headerStyle: { backgroundColor: c.card2 },
-                  headerTintColor: c.text,
-                  title: "Ticket",
-                  headerBackTitle: "Cancel",
-                }}
-                />
-              <Stack.Screen
-                name="ticket/new"
-                options={{
-                  headerShown: true,
-                  headerStyle: { backgroundColor: c.card2 },
-                  headerTintColor: c.text,
-                  title: "New Station",
-                  headerBackTitle: "Back",
-                }}
-                />
-              <Stack.Screen
-                name="ticket/existing"
-                options={{
-                  headerShown: true,
-                  headerStyle: { backgroundColor: c.card2 },
-                  headerTintColor: c.text,
-                  title: "Issue a Ticket",
-                  headerBackTitle: "Back",
-                }}
-                />
-                
-            </Stack>
-          </Animated.View>
+          <AdminAuthProvider>
+            <AuthProvider>
+              <Animated.View style={{ flex: 1, opacity: fade }}>
+                <Stack screenOptions={{ headerShown: false, }}>
+                  <Stack.Screen name="(tabs)" />
+                  <Stack.Screen 
+                    name="station/[id]" 
+                    options={{ 
+                      headerShown: true, 
+                      headerStyle: { backgroundColor: c.card2 },
+                      headerTintColor: c.text,
+                      title: "Station",
+                      headerBackTitle: "Back",
+                    }}
+                    />
+                  <Stack.Screen 
+                    name="ticket/review/delete/[id]" 
+                    options={{ 
+                      headerShown: true, 
+                      headerStyle: { backgroundColor: c.card2 },
+                      headerTintColor: c.text,
+                      title: "Ticket",
+                      headerBackTitle: "Cancel",
+                    }}
+                    />
+                  <Stack.Screen 
+                    name="ticket/review/details/[id]" 
+                    options={{ 
+                      headerShown: true, 
+                      headerStyle: { backgroundColor: c.card2 },
+                      headerTintColor: c.text,
+                      title: "Ticket",
+                      headerBackTitle: "Cancel",
+                    }}
+                    />
+                  <Stack.Screen
+                    name="ticket/new"
+                    options={{
+                      headerShown: true,
+                      headerStyle: { backgroundColor: c.card2 },
+                      headerTintColor: c.text,
+                      title: "New Station",
+                      headerBackTitle: "Back",
+                    }}
+                    />
+                  <Stack.Screen
+                    name="ticket/existing"
+                    options={{
+                      headerShown: true,
+                      headerStyle: { backgroundColor: c.card2 },
+                      headerTintColor: c.text,
+                      title: "Issue a Ticket",
+                      headerBackTitle: "Back",
+                    }}
+                    />
+                    
+                </Stack>
+              </Animated.View>
+            </AuthProvider>
+          </AdminAuthProvider>
         </PrefsContext.Provider>
       </NewMarkerLocProvider>
     </LocationProvider>

@@ -4,27 +4,23 @@ import { StyleSheet, View, Text, FlatList, Pressable, LayoutAnimation, Animated,
 import { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { router, useFocusEffect } from "expo-router";
 
-import { usePrefs } from "../../src/context/prefs";
-import { useAuth } from "../../src/context/auth";
-import { useColors } from "../../src/theme/colors";
-import { timeAgo } from "../../hooks/timeAgo";
-import { meterstoMiles, haversineMeters, roundTo } from "../../hooks/distanceFromUser";
+import { useNewMarkerLoc } from "../../../src/context/newMarkerLocation";
+import { useLiveLocation } from "../../../src/context/userLocation";
+import { usePrefs } from "../../../src/context/prefs";
+import { useColors } from "../../../src/theme/colors";
 
+import { listStations, StationRow } from "../../../src/db/stationsRepo";
+import { haversineMeters, meterstoMiles, roundTo } from "../../../hooks/distanceFromUser";
+import { timeAgo } from "../../../hooks/timeAgo";
 
-import { TabBarIcon } from "./_layout";
+import ThemedBg from "../../../components/ThemedBg";
+import ThemedBg2 from "../../../components/ThemedBg2";
+import ThemedCard2 from "../../../components/ThemedCard2";
+import ThemedText from "../../../components/ThemedText";
+import ThemedSubtext from "../../../components/ThemedSubtext";
 
-import { useLiveLocation } from "../../src/context/userLocation";
-import { useNewMarkerLoc } from "../../src/context/newMarkerLocation";
-
-import { listStations, StationRow, syncStations } from '../../src/db/stationsRepo';
-import { Ionicons } from '@expo/vector-icons';
-
-import ThemedBg from "../../components/ThemedBg";
-import ThemedBg2 from "../../components/ThemedBg";
-import ThemedCard2 from "../../components/ThemedCard2";
-import ThemedText from "../../components/ThemedText";
-import ThemedSubtext from "../../components/ThemedSubtext";
-import { getVisibleStationsForUser } from "../../src/features/account/organizationService";
+import { TabBarIcon } from "../../(tabs)/_layout";
+import { Ionicons } from "@expo/vector-icons";
 
 function filterColor(status: string) {
   if (status === "GREEN") return "#16a34a";
@@ -35,7 +31,6 @@ function filterColor(status: string) {
 
 
 export default function ListTab() {
-  const { currentUser } = useAuth();
 
   // ================= user location =================
   const userLoc = useLiveLocation();
@@ -43,13 +38,9 @@ export default function ListTab() {
   
   // ================= stations =================
   const [stations, setStations] = useState<StationRow[]>(() => listStations());
-  const visibleStations = useMemo(
-    () => getVisibleStationsForUser(stations, currentUser?.id),
-    [currentUser?.id, stations]
-  );
   
   const activeStations = useMemo(() => { 
-     const active = visibleStations.filter((s) => s.stationStatus === "ACTIVE")
+     const active = stations.filter((s) => s.stationStatus === "ACTIVE")
      
      const coords = userLoc?.coords
      if (!coords) return active;
@@ -73,30 +64,29 @@ export default function ListTab() {
       return distA - distB
     
     });
-  },  [visibleStations, userLoc.coords]);
+  },  [stations, userLoc.coords]);
 
 
 
   const [includeAll, setIncludeAll] = useState(false);
 
   const stationsDisplayed = useMemo(
-    () => includeAll ? visibleStations : activeStations
-    , [includeAll, activeStations, visibleStations]
+    () => includeAll ? listStations() : activeStations
+    , [includeAll, activeStations, stations]
   )
 
 
   // ================= refresh =================
   const [refreshing, setRefreshing] = useState(false);
   
-  const handleRefresh = useCallback(async () => {
+  const handleRefresh = useCallback(() => {
     setRefreshing(true);
 
     const start = Date.now();
 
     try {
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      const synced = await syncStations();
-      setStations(synced);
+      setStations(listStations());
     } finally {
       const elapsed = Date.now() - start;
       const remaining = 1000 - elapsed;
@@ -109,11 +99,7 @@ export default function ListTab() {
     }
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      void handleRefresh();
-    }, [handleRefresh])
-  );
+  useFocusEffect(useCallback(() => handleRefresh(), [handleRefresh]));
   
   
   
@@ -218,7 +204,7 @@ export default function ListTab() {
                   {item.buildingName}
                 </ThemedSubtext>
 
-                <ThemedSubtext style={styles.metaData}>
+                <ThemedSubtext style={styles.buildingName}>
                   {metric.prefs.metric
                     ? roundTo(
                         haversineMeters(
@@ -306,7 +292,6 @@ const styles = StyleSheet.create({
   // station card
   card: {
     width: 165,
-    height: 165,
     marginTop: 14,
     padding: 14,
     borderRadius: 18,
@@ -340,8 +325,7 @@ const styles = StyleSheet.create({
   },
 
   badgeText: { fontSize: 12, fontWeight: "800" },
-  buildingName: { fontSize: 13, marginTop: 2, minHeight:30, },
-  metaData: { fontSize: 13, marginTop: 2, },
+  buildingName: { fontSize: 13, marginTop: 2 },
   meta: { fontSize: 12 },
 
   footer: {

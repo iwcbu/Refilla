@@ -14,6 +14,7 @@ import StationPreview from "../../../../components/StationPreview";
 import { FilterStatus, StationStatus } from '../../../../types/station';
 
 import { Ionicons } from "@expo/vector-icons";
+import { getUser } from "../../../../src/db/userRepo";
 
 
 type StationForm = {
@@ -55,6 +56,7 @@ export default function TicketDetailScreen() {
     const [stationStatus, setStationStatus] = useState<StationStatus>("PENDING");
     const [body, setBody] = useState("");
     const [loading, setLoading] = useState(true);
+    const author = ticket?.user_id != null ? getUser(ticket.user_id) : null;
 
 
     useEffect(() => {
@@ -190,7 +192,15 @@ export default function TicketDetailScreen() {
                 </View>
                 <Text style={[styles.meta, { color: c.subtext } ]}>Ticket #{ticket.id}</Text>
                 <Text style={[styles.meta, { color: c.subtext } ]}>Station ID: {ticket.station_id}</Text>
-                <Text style={[styles.meta, { color: c.subtext } ]}>Submitted by: user{ticket.user_id}</Text>
+                <View style={styles.authorRow}>
+                    <Text style={styles.authorEmoji}>{author?.avatar_emoji ?? "🙂"}</Text>
+                    <View>
+                        <Text style={[styles.meta, { color: c.subtext } ]}>
+                            Submitted by: @{author?.username ?? `user${ticket.user_id}`}
+                        </Text>
+                        <Text style={[styles.meta, { color: c.subtext } ]}>Profile ID: {ticket.user_id}</Text>
+                    </View>
+                </View>
                 <Text style={[styles.meta, { color: c.subtext } ]}>Created: {ticket.created_at}</Text>
                 
                 <Text style={[styles.label, { color: c.text } ]}>Status</Text>
@@ -293,6 +303,14 @@ const styles = StyleSheet.create({
     meta: {
         fontSize: 13,
         color: "#666",
+    },
+    authorRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+    },
+    authorEmoji: {
+        fontSize: 24,
     },
     
 

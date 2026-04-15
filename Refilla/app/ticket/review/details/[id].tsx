@@ -18,6 +18,7 @@ import ThemedBg from "../../../../components/ThemedBg";
 import ThemedCard2 from "../../../../components/ThemedCard2";
 import ThemedText from "../../../../components/ThemedText";
 import ThemedCard from "../../../../components/ThemedCard";
+import { getUser } from "../../../../src/db/userRepo";
 
 
 type StationForm = {
@@ -58,7 +59,9 @@ export default function TicketDetailScreen() {
     const [filterStatus, setFilterStatus] = useState<FilterStatus>("RED");
     const [stationStatus, setStationStatus] = useState<StationStatus>("PENDING");
     const [body, setBody] = useState("");
+    const [notes, setNotes] = useState("");
     const [loading, setLoading] = useState(true);
+    const author = ticket?.user_id != null ? getUser(ticket.user_id) : null;
 
 
     useEffect(() => {
@@ -237,7 +240,15 @@ export default function TicketDetailScreen() {
                 </View>
                 <ThemedText style={styles.meta}>Ticket #{ticket.id}</ThemedText>
                 <ThemedText style={styles.meta}>Station ID: {ticket.station_id}</ThemedText>
-                <ThemedText style={styles.meta}>Submitted by: user{ticket.user_id}</ThemedText>
+                <View style={styles.authorRow}>
+                    <ThemedText style={styles.authorEmoji}>{author?.avatar_emoji ?? "🙂"}</ThemedText>
+                    <View>
+                        <ThemedText style={styles.meta}>
+                            Submitted by: @{author?.username ?? `user${ticket.user_id}`}
+                        </ThemedText>
+                        <ThemedText style={styles.meta}>Profile ID: {ticket.user_id}</ThemedText>
+                    </View>
+                </View>
                 <ThemedText style={styles.meta}>Created: {ticket.created_at}</ThemedText>
 
                 <ThemedText style={[styles.label, { color: c.text } ]}>Status</ThemedText>
@@ -279,6 +290,16 @@ export default function TicketDetailScreen() {
 
                 <Text style={[styles.label, { color: c.text } ]}>Body</Text>
                 <Text style={{ color: c.subtext }}>{ body }</Text>
+
+                <Text style={[]}></Text>
+                <TextInput
+                  value={notes}
+                  onChangeText={setNotes}
+                  autoCorrect={false}
+                  placeholder="Put ticket notes here"
+                  placeholderTextColor={c.subtext}
+                  style={[styles.input, { backgroundColor: c.bg, color: c.text }]}
+                />
 
 
                 <Pressable style={[styles.saveButton, {backgroundColor: c.ticketBubble}]} onPress={handleSave}>
@@ -523,6 +544,14 @@ const styles = StyleSheet.create({
     },
     meta: {
         fontSize: 13,
+    },
+    authorRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+    },
+    authorEmoji: {
+        fontSize: 24,
     },
     
 

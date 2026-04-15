@@ -1,25 +1,27 @@
 // app/station/preview.tsx
 
-import { ActivityIndicator, StyleSheet, View, Text, Pressable } from "react-native";
+import { ActivityIndicator, StyleSheet, View, Text, Pressable, Alert, } from "react-native";
 import MapView, { Marker } from 'react-native-maps';
-import { useLocalSearchParams, Stack, router } from "expo-router";;
+import { Stack } from "expo-router";;
+
+import { StationRow } from "../src/db/stationsRepo";
+import { getOrg } from "../src/db/organizationRepo";
 
 import { useColors } from "../src/theme/colors";
 import { TabBarIcon } from "../app/(tabs)/_layout";
-
-import { StationRow } from "../src/db/stationsRepo";
+import { Ionicons } from "@expo/vector-icons";
 
 import ThemedBg from "./ThemedBg";
 import ThemedText from "./ThemedText";
 import ThemedSubtext from "./ThemedSubtext";
-import ThemedCard from "./ThemedCard";
 import ThemedCard2 from "./ThemedCard2";
+
 
 function filterColor(status: string) {
   if (status === "GREEN") return "#16a34a";
   if (status === "YELLOW") return "#f59e0b";
   if (status === "RED") return "#ef4444";
-  return "#64748b";
+  return "#00000041";
 }
 
 function statusColor(status: string) {
@@ -33,7 +35,6 @@ function softBg(hex: string) {
   if (hex === "#f59e0b") return "#fffbeb";
   return "#fee2e2";
 }
-
 
 type SpProps = {
     station: StationRow | null;
@@ -56,6 +57,8 @@ export default function StationPreview( { station }: SpProps) {
   const c = useColors();
   const fColor = filterColor(station.filterStatus);
   const sColor = statusColor(station.stationStatus);
+  const organization = station.organization_id ? getOrg(station.organization_id) : null;
+  
 
   return (
     <>
@@ -68,16 +71,15 @@ export default function StationPreview( { station }: SpProps) {
               headerBackTitle: "Back",
             }}
       />
-    <ThemedBg style={styles.screen}>
-      
+    <ThemedBg style={[styles.screen, { backgroundColor: c.bg } ]}>
       <View style={styles.header}>
-        <ThemedText style={styles.title}>Station Details</ThemedText>
-        <ThemedSubtext style={styles.subtitle}>
-          {station.buildingName} • {station.buildingAbre}
+        <ThemedText style={styles.title}>{station.buildingName} • {station.buildingAbre} </ThemedText>
+        <ThemedSubtext style={[styles.subtitle, { fontWeight: 'bold' }]}>
+          {organization?.name ?? "Available to all users"}
         </ThemedSubtext>
       </View>
 
-      <ThemedCard style={[styles.card, { backgroundColor: c.card2 } ]}>
+      <ThemedCard2 style={[styles.card, { backgroundColor: c.card2 } ]}>
 
         <View style={styles.rowBetween}>
           <View style={{ flex: 1 }}>
@@ -86,38 +88,40 @@ export default function StationPreview( { station }: SpProps) {
           </View>
 
           <ThemedCard2 style={styles.statPill}>
-            <Pressable 
+            <Pressable
+            onPress={() => {
+              Alert.alert('Station Details', 'This pages shows detailed information about the station, including its status, filter condition, and location. You can also get directions to the station or add the station to your favorites. \
+                \n \n Filters condition guide: \nGreen: Good \n Yellow: Replace Soon \n Red: Replace Now \n NA: Not Applicable \
+                \n \n If you have any issues with this station, please report it by tapping the "Report an Issue" button at the bottom of the page. Your feedback helps us maintain the quality of your water bottle filling experience!');
+            }}
               style={({ pressed }) => [
                 pressed && styles.ticketPressed,
               ]}
               >
-                <View style={styles.gearIcon}>
-                  <TabBarIcon name="gear" color={ c.no == '#000000' ? '#969696' : c.no } />
-                </View>
+                <Ionicons name="information-circle-outline" size={24} color={c.subtext} style={{ marginLeft:'auto' }} />
               </Pressable>
           </ThemedCard2>
         </View>
 
 
         <View style={styles.badgeRow}>
-          <View style={[styles.badge, { backgroundColor: (c.yes == '#00000') ? softBg(fColor) : c.card2, borderColor: fColor }]}>
+          <View style={[styles.badge, { backgroundColor: (c.yes == '#00000') ? softBg(fColor) : c.card2, borderColor: fColor == "#00000041" ? c.subtext : fColor }]}>
             <ThemedText style={styles.badgeKey}>Filter</ThemedText>
-            <ThemedText style={styles.badgeVal}>{station.filterStatus}</ThemedText>
+            <Text style={[styles.badgeVal, { color: fColor == "#00000041" ? c.subtext : fColor }]}>{station.filterStatus}</Text>
           </View>
 
           <View style={[styles.badge, { backgroundColor: (c.yes == '#00000') ? softBg(fColor) : c.card2, borderColor: sColor }]}>
             <ThemedText style={styles.badgeKey}>Status</ThemedText>
-            <ThemedText style={styles.badgeVal}>{station.stationStatus}</ThemedText>
+            <Text style={[styles.badgeVal, { color: sColor }]}>{station.stationStatus}</Text>
           </View>
         </View>
         
         <View style={styles.section}>
           <ThemedText style={styles.sectionTitle}>Where to go</ThemedText>
-          <ThemedText style={[styles.details, { color: c.text } ]}>
-            <ThemedText style={[styles.detailsStrong, { color: c.text } ]}>{station.buildingAbre}:</ThemedText>{" "}
+          <ThemedText style={styles.details}>
+            <ThemedText style={styles.detailsStrong}>{station.buildingAbre}:</ThemedText>{" "}
             {station.buildingDetails}
           </ThemedText>
-          <ThemedText style={[styles.meta, { color: c.subtext } ]}>Last updated: {station.updated_at}</ThemedText>
         </View>
 
 
@@ -142,8 +146,14 @@ export default function StationPreview( { station }: SpProps) {
             </MapView>
         
         </View>
-      </ThemedCard>
+      </ThemedCard2 >
+      <ThemedText style={styles.meta}>Last updated: {station.updated_at}</ThemedText>
+
+
+        
+
     </ThemedBg>
+    
   </>
   );
 }
@@ -291,5 +301,5 @@ const styles = StyleSheet.create({
     display: 'flex', 
     justifyContent:'center', 
     alignItems:'center' 
-  }
+  },
 });

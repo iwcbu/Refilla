@@ -1,8 +1,9 @@
 // app/(tabs)/adminView.tsx
 
-import { useMemo, useState, useCallback, useEffect } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { 
   View,
+  Text,
   Pressable,
   FlatList,
   StyleSheet,
@@ -12,26 +13,22 @@ import {
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 
-import { useColors } from '../../src/theme/colors';
-import { useAdminAuth } from '../../src/context/adminAuth';
-import { listTickets, syncTickets, TicketRow } from '../../src/db/ticketsRepo';
-import { timeAgo } from '../../hooks/timeAgo';
-import { TicketCard } from '../../components/TicketCard';
-import { TabBarIcon } from './_layout';
-
-// TEMPORARY
-import { db } from '../../src/db/database';
-import { migrate } from '../../src/db/migrations';
 
 import { Ionicons } from '@expo/vector-icons';
+import { useColors } from '../../../src/theme/colors';
+import { listTickets, TicketRow } from '../../../src/db/ticketsRepo';
+import ThemedBg from '../../../components/ThemedBg';
+import ThemedText from '../../../components/ThemedText';
+import ThemedSubtext from '../../../components/ThemedSubtext';
+import { db } from '../../../src/db/database';
+import { migrate } from '../../../src/db/migrations';
+import { TabBarIcon } from '../../(tabs)/_layout';
+import { timeAgo } from '../../../hooks/timeAgo';
+import { TicketCard } from '../../../components/TicketCard';
 
-import ThemedBg from '../../components/ThemedBg';
-import ThemedText from '../../components/ThemedText';
-import ThemedSubtext from '../../components/ThemedSubtext';
 
 export default function TicketList() {
   const c = useColors();
-  const { isReady, isAdminSignedIn } = useAdminAuth();
 
   const [ticketList, setTicketList] = useState<TicketRow[]>(() => listTickets());
   const [includeAll, setIncludeAll] = useState(false);
@@ -49,14 +46,13 @@ export default function TicketList() {
   // ================= refresh =================
   const [refreshing, setRefreshing] = useState(false);
 
-  const handleRefresh = useCallback(async () => {
+  const handleRefresh = useCallback(() => {
     setRefreshing(true);
 
     const start = Date.now();
 
     try {
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      await syncTickets();
       setTicketList([...listTickets()]);
     } finally {
       const elapsed = Date.now() - start;
@@ -70,41 +66,7 @@ export default function TicketList() {
     }
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      void handleRefresh();
-    }, [handleRefresh])
-  );
-
-  useEffect(() => {
-    if (isReady && !isAdminSignedIn) {
-      router.replace("/account/login/adminLogin");
-    }
-  }, [isAdminSignedIn, isReady]);
-
-  if (!isReady) {
-    return (
-      <ThemedBg style={styles.screen}>
-        <View style={styles.lockedState}>
-          <ActivityIndicator />
-          <ThemedSubtext>Loading admin session...</ThemedSubtext>
-        </View>
-      </ThemedBg>
-    );
-  }
-
-  if (!isAdminSignedIn) {
-    return (
-      <ThemedBg style={styles.screen}>
-        <View style={styles.lockedState}>
-          <ThemedText style={styles.title}>Admin locked</ThemedText>
-          <ThemedSubtext>
-            Sign in from the admin login screen to review tickets.
-          </ThemedSubtext>
-        </View>
-      </ThemedBg>
-    );
-  }
+  useFocusEffect(useCallback(() => handleRefresh(), [handleRefresh]));
 
   return (
     <ThemedBg style={styles.screen}>
@@ -182,6 +144,7 @@ export default function TicketList() {
         keyExtractor={(item) => String(item.id)}
         contentContainerStyle={styles.grid}
         columnWrapperStyle={styles.row}
+        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => {
           return (
@@ -195,6 +158,7 @@ export default function TicketList() {
                   : router.push(`/ticket/review/details/${item.id}`);
               }}
               style={({ pressed }) => [
+                styles.card,
                 { backgroundColor: c.card2, borderColor: c.border2 },
                 pressed && styles.cardPressed,
               ]}
@@ -210,12 +174,6 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     padding: 16,
-  },
-  lockedState: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
   },
 
   header: {
@@ -285,6 +243,21 @@ const styles = StyleSheet.create({
 
   row: {
     gap: 12,
+  },
+
+  card: {
+    flex: 1,
+    width: 165,
+    marginTop: 14,
+    padding: 14,
+    borderRadius: 18,
+    gap: 6,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 2,
   },
 
   cardPressed: {

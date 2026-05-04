@@ -59,6 +59,7 @@ export function migrate(db: SQLiteDatabase) {
     CREATE TABLE IF NOT EXISTS USERS (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT NOT NULL UNIQUE,
+      auth_user_id TEXT UNIQUE,
       profile_key TEXT UNIQUE,
       avatar_emoji TEXT NOT NULL DEFAULT '🙂',
       points INTEGER NOT NULL DEFAULT 0,
@@ -116,6 +117,7 @@ export function migrate(db: SQLiteDatabase) {
 
   const userColumns = db.getAllSync<{ name: string }>(`PRAGMA table_info(USERS);`);
   const hasAvatarEmoji = userColumns.some((column) => column.name === "avatar_emoji");
+  const hasAuthUserId = userColumns.some((column) => column.name === "auth_user_id");
   const hasProfileKey = userColumns.some((column) => column.name === "profile_key");
 
   if (!hasAvatarEmoji) {
@@ -129,6 +131,13 @@ export function migrate(db: SQLiteDatabase) {
     db.execSync(`
       ALTER TABLE USERS
       ADD COLUMN profile_key TEXT;
+    `);
+  }
+
+  if (!hasAuthUserId) {
+    db.execSync(`
+      ALTER TABLE USERS
+      ADD COLUMN auth_user_id TEXT;
     `);
   }
 
@@ -146,6 +155,7 @@ export function migrate(db: SQLiteDatabase) {
   }
 
   db.execSync(`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_users_auth_user_id ON users(auth_user_id);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_users_profile_key ON users(profile_key);
   `);
 

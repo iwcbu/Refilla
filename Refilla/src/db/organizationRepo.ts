@@ -1,5 +1,9 @@
 import { db } from "./database";
-import { requireSupabase } from "../lib/sharedData";
+import {
+  buildMissingTableError,
+  isMissingSupabaseTableMessage,
+  requireSupabase,
+} from "../lib/sharedData";
 
 export type OrganizationRow = {
   id: number;
@@ -47,6 +51,10 @@ export async function syncOrganizations(): Promise<OrganizationRow[]> {
   const { data, error } = await supabase.from("organizations").select("*").order("id");
 
   if (error) {
+    if (isMissingSupabaseTableMessage(error.message)) {
+      console.log(buildMissingTableError("organizations").message);
+      return listOrgs();
+    }
     throw new Error(error.message);
   }
 
@@ -76,6 +84,9 @@ export async function createOrg(name: string): Promise<number> {
     .single();
 
   if (error) {
+    if (isMissingSupabaseTableMessage(error.message)) {
+      throw buildMissingTableError("organizations");
+    }
     throw new Error(error.message);
   }
 
@@ -101,6 +112,9 @@ export async function updateOrg(
     .single();
 
   if (error) {
+    if (isMissingSupabaseTableMessage(error.message)) {
+      throw buildMissingTableError("organizations");
+    }
     throw new Error(error.message);
   }
 
@@ -111,6 +125,9 @@ export async function deleteOrg(id: number): Promise<void> {
   const supabase = requireSupabase();
   const { error } = await supabase.from("organizations").delete().eq("id", id);
   if (error) {
+    if (isMissingSupabaseTableMessage(error.message)) {
+      throw buildMissingTableError("organizations");
+    }
     throw new Error(error.message);
   }
 

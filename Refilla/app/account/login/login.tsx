@@ -1,64 +1,69 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
-  FlatList,
+  Image,
   Pressable,
   StyleSheet,
   TextInput,
   View,
-  Image
 } from "react-native";
-import { Stack, router, useFocusEffect } from "expo-router";
+import { Stack, router } from "expo-router";
 
 import ThemedBg from "../../../components/ThemedBg";
-import ThemedCard2 from '../../../components/ThemedCard2';
+import ThemedCard2 from "../../../components/ThemedCard2";
 import ThemedSubtext from "../../../components/ThemedSubtext";
-import ThemedText from '../../../components/ThemedText';
+import ThemedText from "../../../components/ThemedText";
 import { useAuth } from "../../../src/context/auth";
-import { listUsers, type UserRow } from "../../../src/db/userRepo";
 import { useColors } from "../../../src/theme/colors";
+
+type Mode = "sign_in" | "create";
 
 export default function AccountLoginScreen() {
   const c = useColors();
   const { currentUser, createAccount, signIn } = useAuth();
-  const [users, setUsers] = useState<UserRow[]>(() => listUsers());
+  const [mode, setMode] = useState<Mode>("sign_in");
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const refreshUsers = useCallback(() => {
-    setUsers(listUsers());
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      refreshUsers();
-    }, [refreshUsers])
+  const title = useMemo(
+    () => (mode === "sign_in" ? "Sign in to your profile" : "Create a new profile"),
+    [mode]
   );
 
-  const sortedUsers = useMemo(
-    () => [...users].sort((a, b) => a.username.localeCompare(b.username)),
-    [users]
+  const subtitle = useMemo(
+    () =>
+      mode === "sign_in"
+        ? "Use your email and password to open your Refilla profile on this device."
+        : "Create a Supabase-backed profile so your tickets and points can follow you across devices.",
+    [mode]
   );
-  const canCreateProfile = users.length < 2;
 
-  const handleCreateAccount = async () => {
-    const result = await createAccount(username);
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
 
-    if (!result.ok) {
-      Alert.alert("Could not create profile", result.error);
-      return;
+    try {
+      if (mode === "sign_in") {
+        const result = await signIn(email, password);
+        if (!result.ok) {
+          Alert.alert("Could not sign in", result.error);
+          return;
+        }
+      } else {
+        const result = await createAccount({ email, password, username });
+        if (!result.ok) {
+          Alert.alert("Could not create profile", result.error);
+          return;
+        }
+      }
+
+      setPassword("");
+      router.replace("/(tabs)/account");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setUsername("");
-    refreshUsers();
-    router.replace("/(tabs)/account");
   };
-
-  const handleSignIn = async (userId: number) => {
-    await signIn(userId);
-    router.replace("/(tabs)/account");
-  };
-
-
 
   return (
     <>
@@ -73,99 +78,110 @@ export default function AccountLoginScreen() {
       />
 
       <ThemedBg style={styles.screen}>
-        <FlatList
-          data={sortedUsers}
-          keyExtractor={(item) => String(item.id)}
-          ListHeaderComponent={
-            <View style={styles.headerBlock}>
-              <View style={styles.titleBox}>
-                <ThemedText style={styles.title}>Choose a profile</ThemedText>
-                <Pressable
-                  onPress={() => router.push('./adminLogin')}
-                >
-                  <Image
-                    source={ !c.yes ? require('../../../assets/admin-icons/lightmode.png') : require('../../../assets/admin-icons/darkmode.png')}
-                    style={{ width: 50, height: 50, borderRadius: 10, }}
-                    resizeMode="contain"
-                  />
-                </Pressable>
-              </View>
-              <ThemedSubtext style={styles.subtitle}>
-                Switch between local profiles or create a new one for this device.
-              </ThemedSubtext>
-
-              {canCreateProfile ? (
-                <ThemedCard2 style={styles.card}>
-                  <ThemedText style={styles.cardTitle}>Create a new profile</ThemedText>
-                  <TextInput
-                    value={username}
-                    onChangeText={setUsername}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    placeholder="username"
-                    placeholderTextColor={c.subtext}
-                    style={[styles.input, { backgroundColor: c.bg, color: c.text, borderColor: c.border2 }]}
-                  />
-
-                  <Pressable style={styles.primaryButton} onPress={handleCreateAccount}>
-                    <ThemedText style={styles.primaryButtonText}>Create profile</ThemedText>
-                  </Pressable>
-
-                  {currentUser ? (
-                    <ThemedSubtext style={styles.currentText}>
-                      Current profile: @{currentUser.username}
-                    </ThemedSubtext>
-                  ) : (
-                    <ThemedSubtext style={styles.currentText}>
-                      No profile is currently selected.
-                    </ThemedSubtext>
-                  )}
-                  <ThemedSubtext style={styles.currentText}>
-                    This device is limited to 2 local profiles.
-                  </ThemedSubtext>
-                </ThemedCard2>
-              ) : (
-                <ThemedCard2 style={styles.card}>
-                  <ThemedText style={styles.cardTitle}>Profile limit reached</ThemedText>
-                  <ThemedSubtext>
-                    This device already has 2 local profiles saved, so new profile creation is hidden.
-                  </ThemedSubtext>
-                </ThemedCard2>
-              )}
-
-              <ThemedText style={styles.sectionTitle}>Existing profiles</ThemedText>
-            </View>
-          }
-          contentContainerStyle={styles.content}
-          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-          renderItem={({ item }) => {
-            const isCurrentUser = currentUser?.id === item.id;
-
-            return (
-              <Pressable onPress={() => handleSignIn(item.id)}>
-                <ThemedCard2 style={[styles.card, isCurrentUser && styles.activeCard]}>
-                  <View style={styles.userRow}>
-                    <View style={styles.userMeta}>
-                      <ThemedText style={styles.username}>@{item.username}</ThemedText>
-                      <ThemedSubtext>
-                        {item.points} points
-                      </ThemedSubtext>
-                    </View>
-
-                    <ThemedText style={styles.signInLabel}>
-                      {isCurrentUser ? "Current" : "Sign in"}
-                    </ThemedText>
-                  </View>
-                </ThemedCard2>
+        <View style={styles.content}>
+          <View style={styles.headerBlock}>
+            <View style={styles.titleBox}>
+              <ThemedText style={styles.title}>Profile center</ThemedText>
+              <Pressable onPress={() => router.push("./adminLogin")}>
+                <Image
+                  source={
+                    !c.yes
+                      ? require("../../../assets/admin-icons/lightmode.png")
+                      : require("../../../assets/admin-icons/darkmode.png")
+                  }
+                  style={styles.adminIcon}
+                  resizeMode="contain"
+                />
               </Pressable>
-            );
-          }}
-          ListEmptyComponent={
-            <ThemedCard2 style={styles.card}>
-              <ThemedSubtext>No local profiles exist yet.</ThemedSubtext>
-            </ThemedCard2>
-          }
-        />
+            </View>
+
+            <ThemedSubtext style={styles.subtitle}>
+              {currentUser
+                ? `Signed in as @${currentUser.username}.`
+                : "Use your Supabase-backed profile to access synced tickets, points, and station activity."}
+            </ThemedSubtext>
+          </View>
+
+          <View style={styles.toggleRow}>
+            <Pressable onPress={() => setMode("sign_in")}>
+              <ThemedText style={{ color: mode === "sign_in" ? c.text : c.subtext }}>
+                Sign in
+              </ThemedText>
+              {mode === "sign_in" ? (
+                <View style={[styles.underline, { backgroundColor: c.text }]} />
+              ) : null}
+            </Pressable>
+
+            <Pressable onPress={() => setMode("create")}>
+              <ThemedText style={{ color: mode === "create" ? c.text : c.subtext }}>
+                Create profile
+              </ThemedText>
+              {mode === "create" ? (
+                <View style={[styles.underline, { backgroundColor: c.text }]} />
+              ) : null}
+            </Pressable>
+          </View>
+
+          <ThemedCard2 style={styles.card}>
+            <ThemedText style={styles.cardTitle}>{title}</ThemedText>
+            <ThemedSubtext>{subtitle}</ThemedSubtext>
+
+            {mode === "create" ? (
+              <TextInput
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholder="username"
+                placeholderTextColor={c.subtext}
+                style={[
+                  styles.input,
+                  { backgroundColor: c.bg, color: c.text, borderColor: c.border2 },
+                ]}
+              />
+            ) : null}
+
+            <TextInput
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+              placeholder="email"
+              placeholderTextColor={c.subtext}
+              style={[
+                styles.input,
+                { backgroundColor: c.bg, color: c.text, borderColor: c.border2 },
+              ]}
+            />
+
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              autoCapitalize="none"
+              autoCorrect={false}
+              secureTextEntry
+              placeholder="password"
+              placeholderTextColor={c.subtext}
+              style={[
+                styles.input,
+                { backgroundColor: c.bg, color: c.text, borderColor: c.border2 },
+              ]}
+            />
+
+            <Pressable style={styles.primaryButton} onPress={handleSubmit} disabled={isSubmitting}>
+              <ThemedText style={styles.primaryButtonText}>
+                {isSubmitting
+                  ? mode === "sign_in"
+                    ? "Signing in..."
+                    : "Creating..."
+                  : mode === "sign_in"
+                    ? "Sign in"
+                    : "Create profile"}
+              </ThemedText>
+            </Pressable>
+          </ThemedCard2>
+        </View>
       </ThemedBg>
     </>
   );
@@ -173,27 +189,23 @@ export default function AccountLoginScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  content: { padding: 16, paddingBottom: 28 },
-  headerBlock: { gap: 12, marginBottom: 12 },
-  titleBox: { flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',},
+  content: { padding: 16, paddingBottom: 28, gap: 12 },
+  headerBlock: { gap: 12 },
+  titleBox: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  adminIcon: { width: 50, height: 50, borderRadius: 10 },
   title: { fontSize: 26, fontWeight: "800" },
   subtitle: { fontSize: 14, lineHeight: 20 },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    opacity: 0.7,
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-    marginTop: 8,
-  },
+  toggleRow: { flexDirection: "row", gap: 16 },
+  underline: { height: 2, marginTop: 3 },
   card: {
     padding: 16,
     borderRadius: 16,
     borderWidth: 1,
-    gap: 10,
-  },
-  activeCard: {
-    borderColor: "#2563eb",
+    gap: 12,
   },
   cardTitle: { fontSize: 16, fontWeight: "700" },
   input: {
@@ -213,26 +225,5 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 15,
     fontWeight: "700",
-  },
-  currentText: {
-    marginTop: 2,
-  },
-  userRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 12,
-  },
-  userMeta: {
-    gap: 4,
-  },
-  username: {
-    fontSize: 17,
-    fontWeight: "700",
-  },
-  signInLabel: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#2563eb",
   },
 });

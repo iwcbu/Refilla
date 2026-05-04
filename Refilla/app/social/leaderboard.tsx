@@ -9,6 +9,7 @@ import { Stack, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { getLeaderboard, type LeaderboardEntry } from "../../src/features/account/accountService";
 import { useAuth } from "../../src/context/auth";
+import { syncProfiles } from "../../src/db/userRepo";
 export default function Leaderboard() {
     const c = useColors();
     const { currentUser } = useAuth();
@@ -16,6 +17,9 @@ export default function Leaderboard() {
 
     useFocusEffect(
         useCallback(() => {
+            void syncProfiles().catch((error) => {
+                console.log("Could not sync profiles", error);
+            });
             setEntries(getLeaderboard());
         }, [])
     );

@@ -1,6 +1,10 @@
 import { db } from "./database";
 import { FilterStatus, StationStatus } from "../../types/station";
-import { requireSupabase } from "../lib/sharedData";
+import {
+  buildMissingTableError,
+  isMissingSupabaseTableMessage,
+  requireSupabase,
+} from "../lib/sharedData";
 
 export type StationRow = {
   id: number;
@@ -53,6 +57,10 @@ export async function syncStations(): Promise<StationRow[]> {
   const { data, error } = await supabase.from("stations").select("*").order("id");
 
   if (error) {
+    if (isMissingSupabaseTableMessage(error.message)) {
+      console.log(buildMissingTableError("stations").message);
+      return listStations();
+    }
     throw new Error(error.message);
   }
 
@@ -100,6 +108,9 @@ export async function createStation(input: {
     .single();
 
   if (error) {
+    if (isMissingSupabaseTableMessage(error.message)) {
+      throw buildMissingTableError("stations");
+    }
     throw new Error(error.message);
   }
 
@@ -135,6 +146,9 @@ export async function updateStation(
     .single();
 
   if (error) {
+    if (isMissingSupabaseTableMessage(error.message)) {
+      throw buildMissingTableError("stations");
+    }
     throw new Error(error.message);
   }
 
@@ -145,6 +159,9 @@ export async function deleteStation(id: number): Promise<void> {
   const supabase = requireSupabase();
   const { error } = await supabase.from("stations").delete().eq("id", id);
   if (error) {
+    if (isMissingSupabaseTableMessage(error.message)) {
+      throw buildMissingTableError("stations");
+    }
     throw new Error(error.message);
   }
 

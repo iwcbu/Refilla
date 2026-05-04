@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   createContext,
   useContext,
@@ -8,187 +7,282 @@ import {
   type ReactNode,
 } from "react";
 
-import {
-  createUser,
-  getUser,
-  getUserByUsername,
-  listUsers,
-  type UserRow,
-} from "../db/userRepo";
 import { PROFILE_EMOJIS } from "../features/account/profileEmojis";
+import { requireSupabase } from "../lib/sharedData";
+import {
+  getUserByAuthId,
+  syncProfiles,
+  type UserRow,
+  upsertUserProfile,
+} from "../db/userRepo";
 
-const CURRENT_USER_STORAGE_KEY = "currentUserId";
-const SIGNED_OUT_STORAGE_VALUE = "signed_out";
-
-type CreateAccountResult =
+type AuthResult =
   | { ok: true; user: UserRow }
   | { ok: false; error: string };
 
 type AuthContextValue = {
   currentUser: UserRow | null;
   isReady: boolean;
-  signIn: (userId: number) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<AuthResult>;
   signOut: () => Promise<void>;
-  createAccount: (username: string) => Promise<CreateAccountResult>;
-  refreshCurrentUser: () => void;
+  createAccount: (input: {
+    email: string;
+    password: string;
+    username: string;
+  }) => Promise<AuthResult>;
+  refreshCurrentUser: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue>({
   currentUser: null,
   isReady: false,
-  signIn: async () => {},
+  signIn: async () => ({ ok: false, error: "Auth context unavailable." }),
   signOut: async () => {},
   createAccount: async () => ({ ok: false, error: "Auth context unavailable." }),
-  refreshCurrentUser: () => {},
+  refreshCurrentUser: async () => {},
 });
 
 function normalizeUsername(username: string) {
   return username.trim().replace(/^@+/, "").replace(/\s+/g, "_");
 }
 
-function buildStarterUsername(existingUsers: UserRow[]) {
-  const taken = new Set(existingUsers.map((user) => user.username.toLowerCase()));
-  const base = "refilla_user";
-
-  if (!taken.has(base)) {
-    return base;
-  }
-
-  let suffix = 2;
-  while (taken.has(`${base}_${suffix}`)) {
-    suffix += 1;
-  }
-
-  return `${base}_${suffix}`;
+function pickStarterEmoji(indexHint = 0) {
+  return PROFILE_EMOJIS[indexHint % PROFILE_EMOJIS.length] ?? "🙂";
 }
 
-function pickStarterEmoji(existingUsers: UserRow[]) {
-  return PROFILE_EMOJIS[existingUsers.length % PROFILE_EMOJIS.length] ?? "🙂";
+function buildFallbackUsername(email: string) {
+  const localPart = email.split("@")[0]?.trim();
+  return normalizeUsername(localPart || "refilla_user");
+}
+
+async function ensureCurrentProfile(authUserId: string, email?: string | null) {
+  const supabase = requireSupabase();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", authUserId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (data) {
+    return upsertUserProfile({
+      auth_user_id: data.id,
+      username: data.username,
+      avatar_emoji: data.avatar_emoji ?? "🙂",
+      points: data.points ?? 0,
+      created_at: data.created_at ?? null,
+      updated_at: data.updated_at ?? null,
+    });
+  }
+
+  const username = buildFallbackUsername(email ?? "");
+  const { data: created, error: createError } = await supabase
+    .from("profiles")
+    .insert({
+      id: authUserId,
+      username,
+      avatar_emoji: pickStarterEmoji(0),
+      points: 0,
+    })
+    .select("*")
+    .single();
+
+  if (createError) {
+    throw new Error(createError.message);
+  }
+
+  return upsertUserProfile({
+    auth_user_id: created.id,
+    username: created.username,
+    avatar_emoji: created.avatar_emoji ?? "🙂",
+    points: created.points ?? 0,
+    created_at: created.created_at ?? null,
+    updated_at: created.updated_at ?? null,
+  });
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserRow | null>(null);
   const [isReady, setIsReady] = useState(false);
-  const [revision, setRevision] = useState(0);
 
   useEffect(() => {
+    const supabase = requireSupabase();
     let mounted = true;
 
     async function loadSession() {
-      const storedValue = await AsyncStorage.getItem(CURRENT_USER_STORAGE_KEY);
-      const existingUsers = listUsers();
-
-      if (!mounted) {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        if (mounted) {
+          setCurrentUser(null);
+          setIsReady(true);
+        }
         return;
       }
 
-      if (storedValue === SIGNED_OUT_STORAGE_VALUE) {
-        setCurrentUserId(null);
+      if (!data.session?.user) {
+        if (mounted) {
+          setCurrentUser(null);
+          setIsReady(true);
+        }
+        return;
+      }
+
+      await syncProfiles();
+      const user = await ensureCurrentProfile(data.session.user.id, data.session.user.email);
+
+      if (mounted) {
+        setCurrentUser(user);
+        setIsReady(true);
+      }
+    }
+
+    void loadSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session?.user) {
+        setCurrentUser(null);
         setIsReady(true);
         return;
       }
 
-      if (storedValue != null) {
-        const parsedUserId = Number(storedValue);
-        const storedUser = Number.isFinite(parsedUserId) ? getUser(parsedUserId) : null;
-
-        if (storedUser) {
-          setCurrentUserId(storedUser.id);
-          setIsReady(true);
-          return;
-        }
-      }
-
-      const fallbackUserId =
-        existingUsers[0]?.id ??
-        createUser(buildStarterUsername(existingUsers), pickStarterEmoji(existingUsers));
-
-      await AsyncStorage.setItem(CURRENT_USER_STORAGE_KEY, String(fallbackUserId));
-
-      if (!mounted) {
-        return;
-      }
-
-      setCurrentUserId(fallbackUserId);
-      setIsReady(true);
-    }
-
-    loadSession();
+      void syncProfiles()
+        .then(() => ensureCurrentProfile(session.user.id, session.user.email))
+        .then((user) => {
+          if (mounted) {
+            setCurrentUser(user);
+            setIsReady(true);
+          }
+        })
+        .catch((error) => {
+          console.log("Could not refresh profile session", error);
+          if (mounted) {
+            setIsReady(true);
+          }
+        });
+    });
 
     return () => {
       mounted = false;
+      subscription.unsubscribe();
     };
   }, []);
 
-  const currentUser = useMemo(() => {
-    if (currentUserId == null) {
-      return null;
+  const signIn = async (email: string, password: string): Promise<AuthResult> => {
+    const supabase = requireSupabase();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
+
+    if (error) {
+      return { ok: false, error: error.message };
     }
 
-    return getUser(currentUserId);
-  }, [currentUserId, revision]);
-
-  const signIn = async (userId: number) => {
-    await AsyncStorage.setItem(CURRENT_USER_STORAGE_KEY, String(userId));
-    setCurrentUserId(userId);
-    setRevision((value) => value + 1);
+    const user = await ensureCurrentProfile(data.user.id, data.user.email);
+    setCurrentUser(user);
+    return { ok: true, user };
   };
 
   const signOut = async () => {
-    await AsyncStorage.setItem(CURRENT_USER_STORAGE_KEY, SIGNED_OUT_STORAGE_VALUE);
-    setCurrentUserId(null);
-    setRevision((value) => value + 1);
+    const supabase = requireSupabase();
+    await supabase.auth.signOut();
+    setCurrentUser(null);
   };
 
-  const createAccount = async (username: string): Promise<CreateAccountResult> => {
-    const normalizedUsername = normalizeUsername(username);
+  const createAccount = async (input: {
+    email: string;
+    password: string;
+    username: string;
+  }): Promise<AuthResult> => {
+    const supabase = requireSupabase();
+    const normalizedUsername = normalizeUsername(input.username);
+    const normalizedEmail = input.email.trim().toLowerCase();
+
+    if (!normalizedEmail) {
+      return { ok: false, error: "Enter an email to create a profile." };
+    }
+
+    if (!input.password) {
+      return { ok: false, error: "Enter a password to create a profile." };
+    }
 
     if (!normalizedUsername) {
       return { ok: false, error: "Enter a username to create a profile." };
     }
 
-    const existingUsers = listUsers();
+    const { data, error } = await supabase.auth.signUp({
+      email: normalizedEmail,
+      password: input.password,
+    });
 
-    if (existingUsers.length >= 2) {
+    if (error) {
+      return { ok: false, error: error.message };
+    }
+
+    if (!data.user) {
       return {
         ok: false,
-        error: "This device can only have up to 2 local profiles.",
+        error: "Profile sign-up was started, but no user session was returned.",
       };
     }
 
-    if (getUserByUsername(normalizedUsername)) {
-      return { ok: false, error: "That username is already taken." };
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .upsert({
+        id: data.user.id,
+        username: normalizedUsername,
+        avatar_emoji: pickStarterEmoji(0),
+        points: 0,
+        updated_at: new Date().toISOString(),
+      })
+      .select("*")
+      .single();
+
+    if (profileError) {
+      return { ok: false, error: profileError.message };
     }
 
-    const userId = createUser(normalizedUsername, pickStarterEmoji(existingUsers));
-    const user = getUser(userId);
+    const user = upsertUserProfile({
+      auth_user_id: profileData.id,
+      username: profileData.username,
+      avatar_emoji: profileData.avatar_emoji ?? "🙂",
+      points: profileData.points ?? 0,
+      created_at: profileData.created_at ?? null,
+      updated_at: profileData.updated_at ?? null,
+    });
 
-    if (!user) {
-      return { ok: false, error: "Could not create that profile." };
-    }
-
-    await signIn(user.id);
+    setCurrentUser(user);
     return { ok: true, user };
   };
 
-  const refreshCurrentUser = () => {
-    setRevision((value) => value + 1);
+  const refreshCurrentUser = async () => {
+    if (!currentUser?.auth_user_id) {
+      return;
+    }
+
+    await syncProfiles();
+    const nextUser = getUserByAuthId(currentUser.auth_user_id);
+    setCurrentUser(nextUser);
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        currentUser,
-        isReady,
-        signIn,
-        signOut,
-        createAccount,
-        refreshCurrentUser,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      currentUser,
+      isReady,
+      signIn,
+      signOut,
+      createAccount,
+      refreshCurrentUser,
+    }),
+    [currentUser, isReady]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

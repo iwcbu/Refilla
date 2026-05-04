@@ -1,5 +1,9 @@
 import { db } from "./database";
-import { requireSupabase } from "../lib/sharedData";
+import {
+  buildMissingTableError,
+  isMissingSupabaseTableMessage,
+  requireSupabase,
+} from "../lib/sharedData";
 
 export type OrgBuildingRow = {
   id: number;
@@ -101,6 +105,10 @@ async function syncAllBuildingsInternal(): Promise<OrgBuildingRow[]> {
   const { data, error } = await supabase.from("org_buildings").select("*").order("id");
 
   if (error) {
+    if (isMissingSupabaseTableMessage(error.message)) {
+      console.log(buildMissingTableError("org_buildings").message);
+      return db.getAllSync<OrgBuildingRow>(`SELECT * FROM org_buildings ORDER BY id;`);
+    }
     throw new Error(error.message);
   }
 
@@ -145,6 +153,9 @@ export async function createBuilding(input: BuildingIdentityInput): Promise<numb
     .single();
 
   if (error) {
+    if (isMissingSupabaseTableMessage(error.message)) {
+      throw buildMissingTableError("org_buildings");
+    }
     throw new Error(error.message);
   }
 
@@ -191,6 +202,9 @@ export async function updateBuilding(
     .single();
 
   if (error) {
+    if (isMissingSupabaseTableMessage(error.message)) {
+      throw buildMissingTableError("org_buildings");
+    }
     throw new Error(error.message);
   }
 
@@ -201,6 +215,9 @@ export async function deleteBuilding(id: number): Promise<void> {
   const supabase = requireSupabase();
   const { error } = await supabase.from("org_buildings").delete().eq("id", id);
   if (error) {
+    if (isMissingSupabaseTableMessage(error.message)) {
+      throw buildMissingTableError("org_buildings");
+    }
     throw new Error(error.message);
   }
 

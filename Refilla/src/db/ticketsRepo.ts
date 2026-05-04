@@ -1,6 +1,10 @@
 import { db } from "./database";
 import { getUser } from "./userRepo";
-import { requireSupabase } from "../lib/sharedData";
+import {
+  buildMissingTableError,
+  isMissingSupabaseTableMessage,
+  requireSupabase,
+} from "../lib/sharedData";
 
 export type TicketRow = {
   id: number;
@@ -90,6 +94,10 @@ export async function syncTickets(): Promise<TicketRow[]> {
   const { data, error } = await supabase.from("tickets").select("*").order("id");
 
   if (error) {
+    if (isMissingSupabaseTableMessage(error.message)) {
+      console.log(buildMissingTableError("tickets").message);
+      return listTickets();
+    }
     throw new Error(error.message);
   }
 
@@ -142,6 +150,9 @@ export async function createTicket(input: {
     .single();
 
   if (error) {
+    if (isMissingSupabaseTableMessage(error.message)) {
+      throw buildMissingTableError("tickets");
+    }
     throw new Error(error.message);
   }
 
@@ -165,6 +176,9 @@ export async function updateTicket(
     .single();
 
   if (error) {
+    if (isMissingSupabaseTableMessage(error.message)) {
+      throw buildMissingTableError("tickets");
+    }
     throw new Error(error.message);
   }
 
@@ -176,6 +190,9 @@ export async function deleteTicket(id: number): Promise<void> {
   const supabase = requireSupabase();
   const { error } = await supabase.from("tickets").delete().eq("id", id);
   if (error) {
+    if (isMissingSupabaseTableMessage(error.message)) {
+      throw buildMissingTableError("tickets");
+    }
     throw new Error(error.message);
   }
 

@@ -35,7 +35,7 @@ import {
   getOrganizationSummaryForUser,
 } from "../../src/features/account/organizationService";
 import { useColors } from "../../src/theme/colors";
-import { getUserByUsername, updateUser } from "../../src/db/userRepo";
+import { getUserByUsername, updateRemoteProfile, updateUser } from "../../src/db/userRepo";
 import { listAllOrgIds, OrganizationRow, syncOrganizations } from "../../src/db/organizationRepo";
 import {
   listOrganizationIdsForUser,
@@ -199,7 +199,7 @@ export default function AccountProfileScreen() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!currentUser) {
       router.replace("/account/login/login");
       return;
@@ -218,12 +218,24 @@ export default function AccountProfileScreen() {
       return;
     }
 
-    updateUser(currentUser.id, {
-      username: normalizedUsername,
-      avatar_emoji: avatarEmoji,
-    });
-    refreshCurrentUser();
-    Alert.alert("Profile updated", "Your profile details have been saved.");
+    try {
+      updateUser(currentUser.id, {
+        username: normalizedUsername,
+        avatar_emoji: avatarEmoji,
+      });
+
+      if (currentUser.auth_user_id) {
+        await updateRemoteProfile(currentUser.auth_user_id, {
+          username: normalizedUsername,
+          avatar_emoji: avatarEmoji,
+        });
+      }
+
+      await refreshCurrentUser();
+      Alert.alert("Profile updated", "Your profile details have been saved.");
+    } catch (error) {
+      Alert.alert("Could not update profile", "Please try again.");
+    }
   };
 
   return (
